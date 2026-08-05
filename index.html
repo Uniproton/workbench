@@ -21,6 +21,10 @@ ul{list-style:none}
 .header-content{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
 .header h1{font-size:1.4rem;font-weight:600;letter-spacing:.02em}
 .header-sub{font-size:.8rem;opacity:.8;margin-top:2px}
+.header-settings-btn{display:none;width:40px;height:40px;border-radius:10px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.15);color:#fff;cursor:pointer;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+.header-settings-btn:hover{background:rgba(255,255,255,.25)}
+.header-settings-btn svg{width:20px;height:20px}
+@media(max-width:768px){.header-settings-btn{display:flex}}
 
 /* ===== TOP ALERT ===== */
 .alert-bar{background:#fff;border-bottom:1px solid #e2e8f0;padding:0}
@@ -339,6 +343,9 @@ ul{list-style:none}
       <h1>个人办公工作台</h1>
       <div class="header-sub">客户清单 · 现有客户 · 高效管理 · 每周复盘</div>
     </div>
+    <button class="header-settings-btn" onclick="openSyncSettings()" title="云同步设置">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    </button>
   </div>
 </div>
 
