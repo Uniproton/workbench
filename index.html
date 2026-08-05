@@ -1,0 +1,2425 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>个人办公工作台</title>
+<style>
+/* ===== RESET & BASE ===== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;-webkit-text-size-adjust:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;background:#f1f5f9;color:#1e293b;line-height:1.6;min-height:100vh}
+button{cursor:pointer;font-family:inherit;border:none;outline:none}
+input,textarea,select{font-family:inherit;font-size:16px;outline:none}
+ul{list-style:none}
+
+/* ===== HEADER ===== */
+.header{position:relative;background:linear-gradient(135deg,#0f766e 0%,#0d9488 40%,#14b8a6 100%);color:#fff;padding:20px 24px;overflow:hidden}
+.header::before{content:'';position:absolute;top:-60%;right:-10%;width:400px;height:400px;background:radial-gradient(circle,rgba(255,255,255,.08) 0%,transparent 70%);border-radius:50%}
+.header::after{content:'';position:absolute;bottom:-40%;left:-5%;width:300px;height:300px;background:radial-gradient(circle,rgba(255,255,255,.05) 0%,transparent 70%);border-radius:50%}
+.header-pattern{position:absolute;inset:0;opacity:.04;background-image:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
+.header-content{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.header h1{font-size:1.4rem;font-weight:600;letter-spacing:.02em}
+.header-sub{font-size:.8rem;opacity:.8;margin-top:2px}
+
+/* ===== TOP ALERT ===== */
+.alert-bar{background:#fff;border-bottom:1px solid #e2e8f0;padding:0}
+.alert-inner{max-width:1400px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.alert-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:.78rem;font-weight:600}
+.alert-badge.danger{background:#fef2f2;color:#dc2626}
+.alert-badge.warning{background:#fffbeb;color:#d97706}
+.alert-count{background:#dc2626;color:#fff;border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700}
+.alert-item{display:flex;align-items:center;gap:8px;flex:1;min-width:0}
+.alert-text{font-size:.8rem;color:#475569;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.alert-text .red{color:#dc2626;font-weight:600}
+.alert-actions{display:flex;gap:6px;flex-shrink:0}
+.btn-sm{padding:4px 12px;font-size:.75rem;border-radius:6px;font-weight:500;transition:all .15s}
+.btn-sm.primary{background:#0d9488;color:#fff}
+.btn-sm.primary:hover{background:#0f766e}
+.btn-sm.outline{background:#fff;color:#0d9488;border:1px solid #0d9488}
+.btn-sm.outline:hover{background:#f0fdfa}
+.btn-sm.danger{background:#fef2f2;color:#dc2626;border:1px solid #fecaca}
+.btn-sm.danger:hover{background:#fee2e2}
+
+/* ===== LAYOUT ===== */
+.app-layout{display:flex;max-width:1400px;margin:0 auto;min-height:calc(100vh - 180px)}
+.sidebar{width:200px;background:#fff;border-right:1px solid #e2e8f0;flex-shrink:0;padding:16px 0;display:flex;flex-direction:column;gap:2px}
+.sidebar-nav{padding:0 12px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;font-size:.88rem;color:#475569;cursor:pointer;transition:all .15s;font-weight:500;border:none;background:none;width:100%;text-align:left;margin-bottom:2px}
+.nav-item:hover{background:#f0fdfa;color:#0d9488}
+.nav-item.active{background:#ccfbf1;color:#0f766e;font-weight:600}
+.nav-icon{width:20px;height:20px;flex-shrink:0}
+.sidebar-footer{padding:12px 24px;border-top:1px solid #e2e8f0;margin-top:auto}
+.backup-hint{font-size:.7rem;color:#94a3b8;margin-bottom:8px;display:none}
+.backup-hint.show{display:block}
+.btn-backup{width:100%;padding:6px 12px;font-size:.75rem;border-radius:6px;background:#f8fafc;color:#475569;border:1px solid #e2e8f0;transition:all .15s;margin-bottom:4px;display:flex;align-items:center;justify-content:center;gap:4px}
+.btn-backup:hover{background:#f0fdfa;border-color:#0d9488;color:#0d9488}
+.btn-sync{width:100%;padding:6px 12px;font-size:.75rem;border-radius:6px;background:#0d9488;color:#fff;border:none;transition:all .15s;margin-bottom:4px;display:flex;align-items:center;justify-content:center;gap:4px;font-weight:500}
+.btn-sync:hover{background:#0f766e}
+.btn-sync.synced{background:#f0fdfa;color:#0d9488;border:1px solid #0d9488}
+.btn-sync.error{background:#fef2f2;color:#dc2626;border:1px solid #fecaca}
+.btn-sync.syncing{opacity:.6;pointer-events:none}
+.sync-status{font-size:.68rem;color:#94a3b8;text-align:center;margin-top:2px;min-height:16px}
+.sync-status.on{color:#16a34a}
+.sync-status.off{color:#94a3b8}
+.sync-status.error{color:#dc2626}
+.sync-pulse{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px;vertical-align:middle}
+.sync-pulse.on{background:#16a34a;animation:pulse 2s infinite}
+.sync-pulse.off{background:#cbd5e1}
+.sync-pulse.error{background:#dc2626}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.main-content{flex:1;padding:20px 24px;overflow-y:auto;padding-bottom:80px}
+
+/* ===== DATA BAR ===== */
+.data-bar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.btn-data{padding:6px 14px;font-size:.78rem;border-radius:6px;font-weight:500;transition:all .15s;display:flex;align-items:center;gap:5px;background:#fff;border:1px solid #e2e8f0;color:#475569}
+.btn-data:hover{background:#f0fdfa;border-color:#0d9488;color:#0d9488}
+.btn-data.danger{color:#dc2626;border-color:#fecaca}
+.btn-data.danger:hover{background:#fef2f2}
+.data-count{font-size:.75rem;color:#94a3b8;margin-left:auto}
+
+/* ===== MODULE PANEL ===== */
+.module-panel{display:none}
+.module-panel.active{display:block}
+.module-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.module-header h2{font-size:1.1rem;font-weight:600;color:#0f172a}
+.module-header .btn-add{padding:6px 16px;font-size:.8rem;border-radius:6px;background:#0d9488;color:#fff;font-weight:500;transition:all .15s;display:flex;align-items:center;gap:5px}
+.module-header .btn-add:hover{background:#0f766e}
+
+/* ===== CARDS ===== */
+.card{background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:16px;margin-bottom:12px;transition:box-shadow .15s}
+.card:hover{box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px}
+.card-title{font-weight:600;font-size:.9rem;color:#1e293b;flex:1}
+.card-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:.75rem;color:#64748b}
+.card-actions{display:flex;gap:4px;flex-shrink:0}
+.card-body{font-size:.83rem;color:#475569}
+.card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid #f1f5f9;font-size:.75rem;color:#94a3b8}
+
+/* ===== TAGS & BADGES ===== */
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.7rem;font-weight:500}
+.tag-p0{background:#fef2f2;color:#dc2626}
+.tag-p1{background:#fffbeb;color:#d97706}
+.tag-p2{background:#f0fdf4;color:#16a34a}
+.tag-client-key{background:#ede9fe;color:#7c3aed}
+.tag-client-mid{background:#dbeafe;color:#2563eb}
+.tag-client-new{background:#fce7f3;color:#db2777}
+.tag-project{background:#f0fdfa;color:#0d9488}
+.tag-blocked{background:#fef2f2;color:#dc2626;font-weight:600}
+.tag-rollover{background:#fff7ed;color:#ea580c;font-size:.65rem}
+
+/* ===== TASK LIST ===== */
+.task-group{margin-bottom:16px}
+.task-group-title{font-size:.8rem;font-weight:600;color:#64748b;margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid #f1f5f9;display:flex;align-items:center;gap:6px}
+.task-group-title .dot{width:8px;height:8px;border-radius:50%}
+.task-group-title .dot.today{background:#0d9488}
+.task-group-title .dot.future{background:#94a3b8}
+.task-group-title .dot.past{background:#dc2626}
+.task-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#fff;border-radius:8px;border:1px solid #e2e8f0;margin-bottom:6px;transition:all .15s}
+.task-item:hover{border-color:#cbd5e1}
+.task-item.overdue{border-color:#fecaca;background:#fff5f5}
+.task-item.completed{opacity:.6}
+.task-item.completed .task-title{text-decoration:line-through}
+.task-check{width:20px;height:20px;border-radius:50%;border:2px solid #cbd5e1;flex-shrink:0;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center}
+.task-check:hover{border-color:#0d9488}
+.task-check.done{background:#0d9488;border-color:#0d9488}
+.task-check.done::after{content:'';width:5px;height:9px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg);margin-top:-2px}
+.task-info{flex:1;min-width:0}
+.task-title{font-size:.85rem;font-weight:500;color:#1e293b}
+.task-detail{font-size:.72rem;color:#94a3b8;display:flex;align-items:center;gap:6px;margin-top:2px;flex-wrap:wrap}
+.task-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.btn-task{padding:4px 8px;font-size:.7rem;border-radius:4px}
+.btn-task.ghost{background:transparent;color:#94a3b8}
+.btn-task.ghost:hover{color:#0d9488}
+.btn-task.rollover{background:#fff7ed;color:#ea580c;border:1px solid #fed7aa;font-weight:500}
+.btn-task.rollover:hover{background:#ffedd5}
+
+/* ===== CLIENT CARDS ===== */
+.client-card{border-left:3px solid #0d9488;cursor:pointer;transition:all .2s}
+.client-card:hover{box-shadow:0 2px 12px rgba(0,0,0,.08)}
+.client-card.blocked{border-left-color:#dc2626}
+.client-card.completed{border-left-color:#16a34a;opacity:.7}
+.client-card .expand-icon{transition:transform .2s;display:inline-flex;align-items:center;margin-left:6px}
+.client-card.expanded .expand-icon{transform:rotate(180deg)}
+.client-expand{display:none;border-top:1px solid #f1f5f9;margin-top:12px;padding-top:12px}
+.client-card.expanded .client-expand{display:block}
+.client-task-item{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:6px;font-size:.8rem;margin-bottom:4px;border:1px solid #f1f5f9}
+.client-task-item:hover{background:#f8fafc}
+.client-task-item .task-check-mini{width:16px;height:16px;border-radius:50%;border:2px solid #cbd5e1;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.client-task-item .task-check-mini.done{background:#0d9488;border-color:#0d9488}
+.client-task-item .task-check-mini.done::after{content:'';width:4px;height:7px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg);margin-top:-1px}
+.client-task-item .task-text{flex:1;min-width:0}
+.client-task-item .task-text.done{text-decoration:line-through;color:#94a3b8}
+.client-progress{margin-top:8px;background:#f1f5f9;border-radius:4px;height:6px;overflow:hidden}
+.client-progress-bar{height:100%;background:#0d9488;border-radius:4px;transition:width .3s}
+.client-progress-bar.blocked{background:#f59e0b}
+
+/* ===== PIPELINE（客户清单） ===== */
+.pipeline-section{margin-bottom:28px}
+.pipeline-section-header{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid #f1f5f9}
+.pipeline-section-header .pipeline-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.pipeline-section-header .pipeline-dot.reported{background:#16a34a}
+.pipeline-section-header .pipeline-dot.reporting{background:#f59e0b}
+.pipeline-section-header .pipeline-dot.pending{background:#94a3b8}
+.pipeline-section-header h3{font-size:.95rem;font-weight:600;color:#1e293b}
+.pipeline-section-header .pipeline-count{font-size:.78rem;color:#94a3b8;font-weight:400}
+.pipeline-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.pipeline-card{background:#fff;border-radius:10px;padding:16px;border:1px solid #e2e8f0;transition:all .2s;position:relative}
+.pipeline-card:hover{box-shadow:0 2px 12px rgba(0,0,0,.06);border-color:#cbd5e1}
+.pipeline-card.reported{border-left:3px solid #16a34a}
+.pipeline-card.reporting{border-left:3px solid #f59e0b}
+.pipeline-card.pending{border-left:3px solid #94a3b8}
+.pipeline-tag{display:inline-flex;align-items:center;gap:3px;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:600}
+.pipeline-tag.reported{background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0}
+.pipeline-tag.reporting{background:#fffbeb;color:#d97706;border:1px solid #fde68a}
+.pipeline-tag.pending{background:#f8fafc;color:#64748b;border:1px solid #e2e8f0}
+.pipeline-card-name{font-size:.92rem;font-weight:600;color:#1e293b;margin-bottom:0}
+.pipeline-card-header{cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px;user-select:none}
+.pipeline-card-header:hover .pipeline-card-name{color:#0d9488}
+.pipeline-card-header .expand-arrow{transition:transform .2s;display:inline-flex;align-items:center;color:#94a3b8;flex-shrink:0}
+.pipeline-card.expanded .pipeline-card-header .expand-arrow{transform:rotate(180deg);color:#0d9488}
+.pipeline-card-body{display:none;margin-top:12px;padding-top:12px;border-top:1px solid #f1f5f9}
+.pipeline-card.expanded .pipeline-card-body{display:block}
+.pipeline-card-info{font-size:.78rem;color:#64748b;line-height:1.5;margin-bottom:10px}
+.pipeline-card-info span{display:block}
+.pipeline-card-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px solid #f1f5f9}
+.pipeline-btn{padding:5px 14px;font-size:.75rem;border-radius:6px;font-weight:500;transition:all .15s;border:none;cursor:pointer}
+.pipeline-btn.success{background:#16a34a;color:#fff}
+.pipeline-btn.success:hover{background:#15803d}
+.pipeline-btn.warning{background:#f59e0b;color:#fff}
+.pipeline-btn.warning:hover{background:#d97706}
+.pipeline-btn.edit-pipe{background:#fff;color:#475569;border:1px solid #e2e8f0}
+.pipeline-btn.edit-pipe:hover{background:#f0fdfa;border-color:#0d9488;color:#0d9488}
+.pipeline-btn.delete-pipe{background:#fff;color:#ef4444;border:1px solid #fecaca}
+.pipeline-btn.delete-pipe:hover{background:#fef2f2}
+.pipeline-tasks-section{margin-top:8px;padding-top:8px;border-top:1px dashed #e2e8f0}
+.pipeline-synced-badge{display:inline-flex;align-items:center;gap:3px;font-size:.65rem;color:#16a34a;font-weight:500;margin-left:8px}
+.pipeline-synced-badge svg{width:12px;height:12px}
+@media (max-width:768px){
+  .pipeline-grid{grid-template-columns:1fr}
+}
+.client-linked-tasks{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
+.client-linked-task{font-size:.7rem;padding:2px 6px;background:#f0fdfa;border-radius:4px;color:#0d9488;cursor:pointer;transition:all .15s}
+.client-linked-task:hover{background:#ccfbf1}
+.client-linked-task.done{text-decoration:line-through;opacity:.5}
+.client-meta-row{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:.7rem;color:#94a3b8}
+.client-expand-hint{font-size:.72rem;color:#0d9488;margin-top:4px}
+
+/* ===== NOTE CARDS ===== */
+.note-card{border-left:3px solid #6366f1}
+.note-actions{display:flex;gap:4px;flex-shrink:0}
+.note-tag-bar{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
+.btn-note-tag{padding:2px 8px;font-size:.7rem;border-radius:10px;border:1px solid #e2e8f0;background:#fff;color:#64748b;cursor:pointer;transition:all .15s}
+.btn-note-tag:hover,.btn-note-tag.active{background:#eef2ff;color:#6366f1;border-color:#c7d2fe}
+.note-search{display:flex;gap:8px;margin-bottom:12px}
+.note-search input{flex:1;padding:8px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:.85rem}
+
+/* ===== WEEKLY REVIEW ===== */
+.review-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px}
+.review-stat{background:#fff;border-radius:10px;border:1px solid #e2e8f0;padding:14px;text-align:center}
+.review-stat-value{font-size:1.6rem;font-weight:700;color:#0f766e}
+.review-stat-label{font-size:.75rem;color:#94a3b8;margin-top:2px}
+.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.chart-box{background:#fff;border-radius:10px;border:1px solid #e2e8f0;padding:16px}
+.chart-box h4{font-size:.8rem;font-weight:600;color:#475569;margin-bottom:12px}
+.chart-svg{width:100%;max-width:280px;margin:0 auto;display:block}
+.blocker-list{background:#fff;border-radius:10px;border:1px solid #e2e8f0;padding:16px;margin-bottom:16px}
+.blocker-list h4{font-size:.8rem;font-weight:600;color:#dc2626;margin-bottom:10px}
+.blocker-item{padding:8px 0;border-bottom:1px solid #f1f5f9;font-size:.83rem;display:flex;align-items:center;gap:8px}
+.blocker-item:last-child{border-bottom:none}
+.blocker-dot{width:6px;height:6px;border-radius:50%;background:#dc2626;flex-shrink:0}
+
+/* ===== AI REPORT ===== */
+.ai-report-section{margin-top:20px}
+.ai-report-btn{padding:10px 20px;font-size:.85rem;border-radius:8px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-weight:500;transition:all .15s;display:flex;align-items:center;gap:8px}
+.ai-report-btn:hover{background:linear-gradient(135deg,#4f46e5,#7c3aed);transform:translateY(-1px);box-shadow:0 4px 12px rgba(99,102,241,.3)}
+.ai-report-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+.ai-report-result{background:#fff;border-radius:10px;border:1px solid #e2e8f0;padding:20px;margin-top:16px;display:none;line-height:1.8;font-size:.85rem}
+.ai-report-result.show{display:block}
+.ai-report-result h3{font-size:1rem;color:#0f766e;margin:16px 0 8px;padding-bottom:6px;border-bottom:2px solid #f0fdfa}
+.ai-report-result h3:first-child{margin-top:0}
+.ai-report-result p{margin-bottom:8px;color:#475569}
+.ai-report-result .highlight{background:#fefce8;padding:2px 6px;border-radius:3px;font-weight:500}
+.ai-report-result .tag-inline{display:inline-block;padding:1px 6px;border-radius:3px;font-size:.75rem;margin:0 2px}
+.ai-copy-btn{margin-top:12px;padding:6px 14px;font-size:.75rem;border-radius:6px;background:#f1f5f9;color:#475569;border:1px solid #e2e8f0}
+
+/* ===== MODALS ===== */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:14px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.15)}
+.modal-header{padding:16px 20px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between}
+.modal-header h3{font-size:1rem;font-weight:600}
+.modal-close{width:32px;height:32px;border-radius:8px;border:none;background:#f1f5f9;font-size:1.1rem;color:#64748b;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.modal-close:hover{background:#e2e8f0}
+.modal-body{padding:20px}
+.modal-footer{padding:12px 20px;border-top:1px solid #e2e8f0;display:flex;gap:8px;justify-content:flex-end}
+.form-group{margin-bottom:14px}
+.form-label{display:block;font-size:.8rem;font-weight:600;color:#475569;margin-bottom:4px}
+.form-input,.form-select,.form-textarea{width:100%;padding:8px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:.85rem;transition:border-color .15s;background:#fff}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:#0d9488;box-shadow:0 0 0 3px rgba(13,148,136,.1)}
+.form-textarea{resize:vertical;min-height:80px}
+.tag-select{display:flex;gap:6px;flex-wrap:wrap}
+.tag-options{display:flex;gap:6px;flex-wrap:wrap}
+.tag-option{padding:5px 12px;font-size:.75rem;border-radius:20px;border:1px solid #e2e8f0;background:#fff;color:#64748b;cursor:pointer;transition:all .15s;font-weight:500}
+.tag-option:hover{border-color:#0d9488;color:#0d9488}
+.tag-option.selected{background:#f0fdfa;border-color:#0d9488;color:#0d9488}
+
+/* ===== MOBILE BOTTOM NAV ===== */
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e2e8f0;z-index:50;padding:6px 8px;padding-bottom:calc(6px + env(safe-area-inset-bottom,0px))}
+.mobile-nav-inner{display:flex;gap:4px}
+.mobile-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;border-radius:8px;font-size:.65rem;color:#94a3b8;cursor:pointer;transition:all .15s;border:none;background:none;min-height:50px;justify-content:center}
+.mobile-nav-item.active{color:#0d9488;background:#f0fdfa}
+.mobile-nav-item svg{width:20px;height:20px}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:768px){
+  .sidebar{display:none}
+  .mobile-nav{display:block}
+  .main-content{padding:12px 12px 100px;margin-left:0}
+  .app-layout{flex-direction:column}
+  .header{padding:14px 16px}
+  .header h1{font-size:1.2rem}
+  .alert-inner{padding:8px 16px}
+  .data-bar{gap:6px}
+  .chart-row{grid-template-columns:1fr}
+  .review-summary{grid-template-columns:repeat(2,1fr)}
+  .card{padding:12px}
+  .task-item{gap:8px;padding:8px 10px}
+  .task-check{width:24px;height:24px;min-width:24px}
+  .btn-sm{min-height:36px;font-size:.78rem}
+  .btn-task.rollover{min-height:32px;font-size:.72rem}
+  .modal{max-width:100%;border-radius:14px 14px 0 0;max-height:90vh;margin-top:auto}
+  .tag-select{gap:4px}
+  .tag-option{padding:6px 12px;font-size:.78rem}
+  button,a{cursor:pointer}
+}
+@media(min-width:769px){
+  .mobile-nav{display:none!important}
+}
+@media print{
+  .sidebar,.mobile-nav,.data-bar,.alert-bar,.header,.btn-add,.card-actions,.btn-task,.modal-overlay{display:none!important}
+  .main-content{margin:0;padding:0}
+  .card{break-inside:avoid;box-shadow:none;border:1px solid #ddd}
+}
+
+/* ===== CONFIRM DIALOG ===== */
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+.confirm-overlay.show{display:flex}
+.confirm-box{background:#fff;border-radius:14px;padding:24px;max-width:360px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.confirm-box h4{font-size:.95rem;margin-bottom:8px;color:#1e293b}
+.confirm-box p{font-size:.8rem;color:#64748b;margin-bottom:20px}
+.confirm-actions{display:flex;gap:8px;justify-content:center}
+.btn-confirm{padding:8px 20px;font-size:.8rem;border-radius:8px;font-weight:600}
+.btn-confirm.cancel{background:#f1f5f9;color:#475569}
+.btn-confirm.danger{background:#dc2626;color:#fff}
+
+/* ===== EMPTY STATE ===== */
+.empty-state{text-align:center;padding:40px 20px;color:#94a3b8}
+.empty-state svg{width:60px;height:60px;margin-bottom:12px;opacity:.4}
+.empty-state p{font-size:.85rem}
+
+/* ===== TOAST ===== */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1e293b;color:#fff;padding:10px 20px;border-radius:8px;font-size:.8rem;z-index:300;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.2);animation:toastIn .3s ease}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+/* ===== LINK TASK MODAL ===== */
+.linked-task-option{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:6px;cursor:pointer;transition:all .15s;margin-bottom:4px;border:1px solid transparent}
+.linked-task-option:hover{background:#f0fdfa;border-color:#ccfbf1}
+.linked-task-option.selected{background:#ccfbf1;border-color:#0d9488}
+.linked-task-option input[type=checkbox]{width:16px;height:16px;accent-color:#0d9488}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-pattern"></div>
+  <div class="header-content">
+    <div>
+      <h1>个人办公工作台</h1>
+      <div class="header-sub">客户清单 · 现有客户 · 高效管理 · 每周复盘</div>
+    </div>
+  </div>
+</div>
+
+<!-- ALERT BAR -->
+<div class="alert-bar" id="alertBar">
+  <div class="alert-inner" id="alertContent"></div>
+</div>
+
+<!-- DATA BAR -->
+<div class="data-bar" id="dataBar" style="max-width:1400px;margin:0 auto;padding:12px 24px 0;">
+  <button class="btn-data" onclick="exportData()" title="导出 JSON 备份">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    导出备份
+  </button>
+  <button class="btn-data" onclick="document.getElementById('importFile').click()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="3 7 8 2 13 7"/><line x1="8" y1="2" x2="8" y2="15"/></svg>
+    导入恢复
+  </button>
+  <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+  <button class="btn-data danger" onclick="confirmClear()">清空数据</button>
+  <button class="btn-data" onclick="clearExamples()" id="btnClearExamples">清空示例</button>
+  <span class="data-count" id="dataCount"></span>
+</div>
+
+<!-- LAYOUT -->
+<div class="app-layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-module="tasks">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="12" y2="16"/></svg>
+        今天待办
+      </button>
+      <button class="nav-item" data-module="notes">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        灵感速记
+      </button>
+      <button class="nav-item" data-module="pipeline">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        客户清单
+      </button>
+      <button class="nav-item" data-module="clients">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+        现有客户
+      </button>
+      <button class="nav-item" data-module="review">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        每周复盘
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="backup-hint" id="backupHint">数据已积累 <strong id="backupCount">0</strong> 条，建议导出备份</div>
+      <button class="btn-sync" id="btnSync" onclick="openSyncSettings()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+        云同步
+      </button>
+      <div class="sync-status off" id="syncStatus"><span class="sync-pulse off"></span>未启用</div>
+      <button class="btn-backup" onclick="exportData()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        导出备份
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content" id="mainContent">
+    <!-- MODULE: 今天待办 -->
+    <div class="module-panel active" id="panel-tasks">
+      <div class="module-header">
+        <h2>今天待办</h2>
+        <button class="btn-add" onclick="openTaskModal()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          新建任务
+        </button>
+      </div>
+      <div id="taskList"></div>
+    </div>
+
+    <!-- MODULE: 灵感速记 -->
+    <div class="module-panel" id="panel-notes">
+      <div class="module-header">
+        <h2>灵感速记</h2>
+        <button class="btn-add" onclick="openNoteModal()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          记录想法
+        </button>
+      </div>
+      <div class="note-search">
+        <input type="text" id="noteSearchInput" placeholder="按标签或关键词搜索..." oninput="renderNotes()">
+        <div style="display:flex;gap:4px;flex-wrap:wrap" id="noteTagFilters"></div>
+      </div>
+      <div id="noteList"></div>
+    </div>
+
+    <!-- MODULE: 客户清单 -->
+    <div class="module-panel" id="panel-pipeline">
+      <div class="module-header">
+        <h2>客户清单</h2>
+        <button class="btn-add" onclick="openPipelineModal()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          添加客户
+        </button>
+      </div>
+      <div id="pipelineList"></div>
+    </div>
+
+    <!-- MODULE: 现有客户 -->
+    <div class="module-panel" id="panel-clients">
+      <div class="module-header">
+        <h2>现有客户</h2>
+        <button class="btn-add" onclick="openClientModal()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          新建客户
+        </button>
+      </div>
+      <div id="clientList"></div>
+    </div>
+
+    <!-- MODULE: 每周复盘 -->
+    <div class="module-panel" id="panel-review">
+      <div class="module-header">
+        <h2>每周复盘</h2>
+      </div>
+      <div id="reviewContent"></div>
+    </div>
+  </main>
+</div>
+
+<!-- MOBILE BOTTOM NAV -->
+<nav class="mobile-nav" id="mobileNav">
+  <div class="mobile-nav-inner">
+    <button class="mobile-nav-item active" data-module="tasks">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="12" y2="16"/></svg>
+      待办
+    </button>
+    <button class="mobile-nav-item" data-module="notes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      速记
+    </button>
+    <button class="mobile-nav-item" data-module="pipeline">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+      清单
+    </button>
+    <button class="mobile-nav-item" data-module="clients">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+      客户
+    </button>
+    <button class="mobile-nav-item" data-module="review">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      复盘
+    </button>
+  </div>
+</nav>
+
+<!-- TASK MODAL -->
+<div class="modal-overlay" id="taskModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="taskModalTitle">新建任务</h3>
+      <button class="modal-close" onclick="closeTaskModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="taskEditId">
+      <div class="form-group">
+        <label class="form-label">任务内容 *</label>
+        <input class="form-input" id="taskTitle" placeholder="输入任务内容...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">优先级</label>
+        <select class="form-select" id="taskPriority">
+          <option value="P0">P0 - 紧急重要</option>
+          <option value="P1" selected>P1 - 重要</option>
+          <option value="P2">P2 - 一般</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">截止日期</label>
+        <input class="form-input" type="date" id="taskDeadline">
+      </div>
+      <div class="form-group">
+        <label class="form-label">关联客户</label>
+        <input class="form-input" id="taskClientSearch" placeholder="搜索客户名称..." oninput="filterClientSelect()" style="margin-bottom:6px">
+        <select class="form-select" id="taskClient">
+          <option value="">不关联客户</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm outline" onclick="closeTaskModal()">取消</button>
+      <button class="btn-sm primary" onclick="saveTask()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOTE MODAL -->
+<div class="modal-overlay" id="noteModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="noteModalTitle">记录想法</h3>
+      <button class="modal-close" onclick="closeNoteModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="noteEditId">
+      <div class="form-group">
+        <label class="form-label">内容 *</label>
+        <textarea class="form-textarea" id="noteContent" placeholder="随手记下你的想法..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">标签（逗号分隔）</label>
+        <input class="form-input" id="noteTags" placeholder="例如：产品, 运营, 客户">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm outline" onclick="closeNoteModal()">取消</button>
+      <button class="btn-sm primary" onclick="saveNote()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- PIPELINE MODAL（客户清单） -->
+<div class="modal-overlay" id="pipelineModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="pipelineModalTitle">添加客户</h3>
+      <button class="modal-close" onclick="closePipelineModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="pipelineEditId">
+      <div class="form-group">
+        <label class="form-label">客户名称 *</label>
+        <input class="form-input" id="pipelineName" placeholder="输入客户名称...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">客户标签</label>
+        <div class="tag-options" id="pipelineTags">
+          <span class="tag-option" data-tag="pending">待报备客户</span>
+          <span class="tag-option selected" data-tag="reporting">报备中客户</span>
+          <span class="tag-option" data-tag="reported">已报备客户</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">联系人</label>
+        <input class="form-input" id="pipelineContact" placeholder="联系人姓名...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">联系电话</label>
+        <input class="form-input" id="pipelinePhone" placeholder="手机号或座机...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">公司</label>
+        <input class="form-input" id="pipelineCompany" placeholder="公司全称...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">备注</label>
+        <textarea class="form-textarea" id="pipelineNotes" placeholder="客户需求、背景等信息..." rows="2"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm outline" onclick="closePipelineModal()">取消</button>
+      <button class="btn-sm primary" onclick="savePipeline()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- CLIENT MODAL -->
+<div class="modal-overlay" id="clientModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="clientModalTitle">新建客户</h3>
+      <button class="modal-close" onclick="closeClientModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="clientEditId">
+      <div class="form-group">
+        <label class="form-label">客户名称 *</label>
+        <input class="form-input" id="clientName" placeholder="输入客户名称...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">当前阶段</label>
+        <input class="form-input" id="clientStage" placeholder="例如：需求确认 / 方案报价 / 谈判中...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">下一步行动</label>
+        <input class="form-input" id="clientNext" placeholder="接下来要做什么...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">卡点/阻塞（如有）</label>
+        <input class="form-input" id="clientBlocker" placeholder="遇到什么问题...">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm outline" onclick="closeClientModal()">取消</button>
+      <button class="btn-sm primary" onclick="saveClient()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- LINK TASK MODAL -->
+<div class="modal-overlay" id="linkTaskModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>关联任务到客户</h3>
+      <button class="modal-close" onclick="closeLinkModal()">&times;</button>
+    </div>
+    <div class="modal-body" id="linkTaskList"></div>
+    <div class="modal-footer">
+      <button class="btn-sm outline" onclick="closeLinkModal()">取消</button>
+      <button class="btn-sm primary" onclick="saveLinkTasks()">确认关联</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM DIALOG -->
+<div class="confirm-overlay" id="confirmDialog">
+  <div class="confirm-box">
+    <h4 id="confirmTitle">确认操作</h4>
+    <p id="confirmMsg"></p>
+    <div class="confirm-actions">
+      <button class="btn-confirm cancel" onclick="closeConfirm()">取消</button>
+      <button class="btn-confirm danger" id="confirmBtn" onclick="executeConfirm()">确认</button>
+    </div>
+  </div>
+</div>
+
+<!-- SYNC SETTINGS MODAL -->
+<div class="modal-overlay" id="syncModal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <h3>☁️ 云同步设置</h3>
+      <button class="modal-close" onclick="closeSyncSettings()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div style="background:#f0fdfa;border-radius:8px;padding:12px;font-size:.8rem;color:#0f766e;margin-bottom:16px;line-height:1.6">
+        <strong>工作原理：</strong>数据自动保存到你的 GitHub Gist（免费私有代码片段），电脑手机打开页面自动拉取最新数据，修改后自动推送。一次配置，永久同步。
+      </div>
+      <div class="form-group">
+        <label class="form-label">GitHub Personal Access Token</label>
+        <input class="form-input" id="syncToken" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+        <small style="color:#94a3b8">需要 <strong>gist</strong> 权限。没有的话 <a href="#" onclick="window.open('https://github.com/settings/tokens/new?scopes=gist&description=Workbench+Cloud+Sync')" style="color:#0d9488">点此创建</a>，勾选 gist 后生成。</small>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Gist ID（自动生成）</label>
+        <input class="form-input" id="syncGistId" placeholder="首次使用会自动创建，无需手动填写" readonly style="color:#94a3b8">
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn-sm primary" onclick="initSync()" id="btnInitSync" style="flex:1">启用云同步</button>
+        <button class="btn-sm outline" onclick="manualPush()" id="btnManualPush" style="flex:1;display:none">手动推送</button>
+      </div>
+      <div id="syncLog" style="margin-top:12px;font-size:.75rem;color:#64748b;max-height:120px;overflow-y:auto"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== DATA LAYER =====
+const LS_PREFIX = 'wb_office_';
+let tasks = [];
+let notes = [];
+let clients = [];
+let customerList = [];
+let linkClientId = null;
+let confirmCallback = null;
+let currentModule = 'tasks';
+
+function loadData() {
+  try {
+    tasks = JSON.parse(localStorage.getItem(LS_PREFIX + 'tasks') || '[]');
+    notes = JSON.parse(localStorage.getItem(LS_PREFIX + 'notes') || '[]');
+    // Migrate from old key or load new key
+    let raw = localStorage.getItem(LS_PREFIX + 'clients');
+    if (!raw) {
+      raw = localStorage.getItem(LS_PREFIX + 'projects');
+      if (raw) { localStorage.setItem(LS_PREFIX + 'clients', raw); localStorage.removeItem(LS_PREFIX + 'projects'); }
+    }
+    clients = JSON.parse(raw || '[]');
+    // Migrate task projectId → clientId
+    let migrated = false;
+    tasks.forEach(t => {
+      if (t.projectId !== undefined && t.clientId === undefined) {
+        t.clientId = t.projectId;
+        delete t.projectId;
+        migrated = true;
+      }
+    });
+    if (migrated) saveTasks();
+    customerList = JSON.parse(localStorage.getItem(LS_PREFIX + 'pipeline') || '[]');
+
+    // MIGRATION: linkedClientId → pipelineId (new model)
+    let needsSaveClients = false;
+    let needsSaveCustomer = false;
+    let needsSaveTasks = false;
+
+    // 1. Migrate clients: if a client was synced from pipeline (via linkedClientId), set pipelineId
+    customerList.forEach(c => {
+      if (c.linkedClientId) {
+        const linkedClient = clients.find(cl => cl.id === c.linkedClientId);
+        if (linkedClient && !linkedClient.pipelineId) {
+          linkedClient.pipelineId = c.id;
+          needsSaveClients = true;
+        }
+        delete c.linkedClientId;
+        needsSaveCustomer = true;
+      }
+    });
+
+    // 2. Migrate tasks: if clientId points to old clients[].id, find pipelineId and remap
+    tasks.forEach(t => {
+      if (t.clientId) {
+        const cl = clients.find(c => c.id === t.clientId);
+        if (cl && cl.pipelineId && t.clientId !== cl.pipelineId) {
+          t.clientId = cl.pipelineId;
+          needsSaveTasks = true;
+        }
+      }
+    });
+
+    if (needsSaveClients) saveClients();
+    if (needsSaveCustomer) saveCustomerList();
+    if (needsSaveTasks) saveTasks();
+  } catch(e) { tasks = []; notes = []; clients = []; customerList = []; }
+}
+function saveTasks() { localStorage.setItem(LS_PREFIX + 'tasks', JSON.stringify(tasks)); scheduleSyncPush(); }
+function saveNotes() { localStorage.setItem(LS_PREFIX + 'notes', JSON.stringify(notes)); scheduleSyncPush(); }
+function saveClients() { localStorage.setItem(LS_PREFIX + 'clients', JSON.stringify(clients)); scheduleSyncPush(); }
+function saveCustomerList() { localStorage.setItem(LS_PREFIX + 'pipeline', JSON.stringify(customerList)); scheduleSyncPush(); }
+
+// ===== CLOUD SYNC (GitHub Gist) =====
+let syncToken = localStorage.getItem(LS_PREFIX + 'gh_token') || '';
+let syncGistId = localStorage.getItem(LS_PREFIX + 'gh_gist_id') || '';
+let syncPushTimer = null;
+let syncPullTimer = null;
+
+function scheduleSyncPush() {
+  if (!syncToken || !syncGistId) return;
+  clearTimeout(syncPushTimer);
+  syncPushTimer = setTimeout(pushToGist, 2000); // debounce 2s
+}
+
+function updateSyncUI(state, msg) {
+  const btn = document.getElementById('btnSync');
+  const status = document.getElementById('syncStatus');
+  const pulse = status.querySelector('.sync-pulse');
+  btn.className = 'btn-sync';
+  status.className = 'sync-status';
+  pulse.className = 'sync-pulse';
+
+  if (state === 'syncing') {
+    btn.classList.add('syncing');
+    status.classList.add('on');
+    pulse.classList.add('on');
+    status.innerHTML = '<span class="sync-pulse on"></span>同步中...';
+  } else if (state === 'synced') {
+    btn.classList.add('synced');
+    status.classList.add('on');
+    pulse.classList.add('on');
+    status.innerHTML = '<span class="sync-pulse on"></span>' + (msg || '已同步');
+  } else if (state === 'error') {
+    btn.classList.add('error');
+    status.classList.add('error');
+    pulse.classList.add('error');
+    status.innerHTML = '<span class="sync-pulse error"></span>' + (msg || '同步失败');
+  } else {
+    status.classList.add('off');
+    pulse.classList.add('off');
+    status.innerHTML = '<span class="sync-pulse off"></span>未启用';
+  }
+}
+
+async function pushToGist() {
+  if (!syncToken || !syncGistId) return;
+  updateSyncUI('syncing');
+  syncLog('推送数据到云端...');
+  try {
+    const data = {
+      tasks: JSON.parse(localStorage.getItem(LS_PREFIX + 'tasks') || '[]'),
+      notes: JSON.parse(localStorage.getItem(LS_PREFIX + 'notes') || '[]'),
+      clients: JSON.parse(localStorage.getItem(LS_PREFIX + 'clients') || '[]'),
+      customerList: JSON.parse(localStorage.getItem(LS_PREFIX + 'pipeline') || '[]'),
+      _updatedAt: new Date().toISOString(),
+      _version: 1
+    };
+    const resp = await fetch(`https://api.github.com/gists/${syncGistId}`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `token ${syncToken}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/vnd.github.v3+json'
+      },
+      body: JSON.stringify({
+        files: { 'workbench-data.json': { content: JSON.stringify(data, null, 2) } }
+      })
+    });
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.message || `HTTP ${resp.status}`);
+    }
+    updateSyncUI('synced', '已同步 ' + new Date().toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'}));
+    syncLog('✓ 推送成功');
+    localStorage.setItem(LS_PREFIX + 'last_sync', Date.now().toString());
+  } catch (e) {
+    updateSyncUI('error', '推送失败');
+    syncLog('✗ 推送失败: ' + e.message);
+  }
+}
+
+async function pullFromGist() {
+  if (!syncToken || !syncGistId) return null;
+  try {
+    const resp = await fetch(`https://api.github.com/gists/${syncGistId}`, {
+      headers: {
+        'Authorization': `token ${syncToken}`,
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    });
+    if (!resp.ok) {
+      if (resp.status === 404) {
+        syncLog('Gist 不存在，请重新初始化');
+        return null;
+      }
+      throw new Error(`HTTP ${resp.status}`);
+    }
+    const gist = await resp.json();
+    const file = gist.files && gist.files['workbench-data.json'];
+    if (!file || !file.content) return null;
+    const data = JSON.parse(file.content);
+    if (!data._version) return null; // safety check
+    return data;
+  } catch (e) {
+    syncLog('拉取失败: ' + e.message);
+    return null;
+  }
+}
+
+async function autoPullOnStart() {
+  if (!syncToken || !syncGistId) return;
+  updateSyncUI('syncing');
+  syncLog('检查云端数据...');
+  try {
+    const cloud = await pullFromGist();
+    if (!cloud) {
+      updateSyncUI('off');
+      return;
+    }
+    const cloudTime = new Date(cloud._updatedAt).getTime();
+    const localTime = parseInt(localStorage.getItem(LS_PREFIX + 'last_sync') || '0');
+
+    if (cloudTime > localTime) {
+      // Cloud is newer — load it
+      if (cloud.tasks) { tasks = cloud.tasks; localStorage.setItem(LS_PREFIX + 'tasks', JSON.stringify(tasks)); }
+      if (cloud.notes) { notes = cloud.notes; localStorage.setItem(LS_PREFIX + 'notes', JSON.stringify(notes)); }
+      if (cloud.clients) { clients = cloud.clients; localStorage.setItem(LS_PREFIX + 'clients', JSON.stringify(clients)); }
+      if (cloud.customerList) { customerList = cloud.customerList; localStorage.setItem(LS_PREFIX + 'pipeline', JSON.stringify(customerList)); }
+      localStorage.setItem(LS_PREFIX + 'last_sync', cloudTime.toString());
+      renderAll();
+      updateSyncUI('synced', '已从云端加载');
+      syncLog('✓ 从云端更新了数据 (' + new Date(cloud._updatedAt).toLocaleString('zh-CN') + ')');
+    } else {
+      // Local is newer or equal — push local to cloud
+      updateSyncUI('synced', '本地最新');
+      syncLog('本地数据已是最新');
+      pushToGist();
+    }
+  } catch (e) {
+    updateSyncUI('error', '同步检查失败');
+    syncLog('✗ 启动同步失败: ' + e.message);
+  }
+}
+
+function syncLog(msg) {
+  const el = document.getElementById('syncLog');
+  if (!el) return;
+  const time = new Date().toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  el.innerHTML = `<div>[${time}] ${msg}</div>` + el.innerHTML;
+  // Keep last 20 entries
+  const lines = el.innerHTML.split('</div>').filter(Boolean);
+  if (lines.length > 20) el.innerHTML = lines.slice(0, 20).join('</div>') + '</div>';
+}
+
+function openSyncSettings() {
+  document.getElementById('syncToken').value = syncToken;
+  document.getElementById('syncGistId').value = syncGistId;
+  document.getElementById('syncLog').innerHTML = '';
+  updateSyncSettingsUI();
+  document.getElementById('syncModal').classList.add('show');
+}
+
+function closeSyncSettings() {
+  document.getElementById('syncModal').classList.remove('show');
+}
+
+function updateSyncSettingsUI() {
+  const hasConfig = !!(syncToken && syncGistId);
+  document.getElementById('btnInitSync').textContent = hasConfig ? '重新初始化' : '启用云同步';
+  document.getElementById('btnManualPush').style.display = hasConfig ? '' : 'none';
+}
+
+async function initSync() {
+  const token = document.getElementById('syncToken').value.trim();
+  if (!token || !token.startsWith('ghp_')) {
+    showToast('请输入有效的 GitHub Token（以 ghp_ 开头）');
+    return;
+  }
+
+  const btn = document.getElementById('btnInitSync');
+  btn.disabled = true;
+  btn.textContent = '初始化中...';
+  syncLog('正在创建 Gist...');
+
+  try {
+    // Create a new Gist
+    const resp = await fetch('https://api.github.com/gists', {
+      method: 'POST',
+      headers: {
+        'Authorization': `token ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/vnd.github.v3+json'
+      },
+      body: JSON.stringify({
+        description: 'WorkBuddy Personal Workbench — Cloud Sync Data',
+        public: false,
+        files: {
+          'workbench-data.json': {
+            content: JSON.stringify({
+              tasks, notes, clients,
+              _updatedAt: new Date().toISOString(),
+              _version: 1
+            }, null, 2)
+          }
+        }
+      })
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      if (resp.status === 401) throw new Error('Token 无效或已过期');
+      if (resp.status === 403 && err.message && err.message.includes('rate limit')) throw new Error('API 请求次数超限，请稍后再试');
+      throw new Error(err.message || `HTTP ${resp.status}`);
+    }
+
+    const gist = await resp.json();
+    syncToken = token;
+    syncGistId = gist.id;
+
+    localStorage.setItem(LS_PREFIX + 'gh_token', syncToken);
+    localStorage.setItem(LS_PREFIX + 'gh_gist_id', syncGistId);
+    localStorage.setItem(LS_PREFIX + 'last_sync', Date.now().toString());
+
+    document.getElementById('syncGistId').value = syncGistId;
+    updateSyncSettingsUI();
+    updateSyncUI('synced', '已连接');
+    syncLog('✓ 云同步已启用！Gist ID: ' + syncGistId);
+    syncLog('数据将自动在设备间同步');
+    showToast('云同步已启用！');
+
+    btn.disabled = false;
+    btn.textContent = '重新初始化';
+  } catch (e) {
+    syncLog('✗ 初始化失败: ' + e.message);
+    showToast('初始化失败: ' + e.message);
+    btn.disabled = false;
+    btn.textContent = '启用云同步';
+  }
+}
+
+async function manualPush() {
+  if (!syncToken || !syncGistId) return;
+  await pushToGist();
+  showToast('已手动推送');
+}
+
+// Auto-pull on page load — called from init
+function initSyncOnStart() {
+  if (syncToken && syncGistId) {
+    updateSyncUI('synced', '已连接');
+    // Delay pull to let page render first
+    setTimeout(autoPullOnStart, 1500);
+  }
+}
+
+function seedExamples() {
+  if (tasks.length > 0 || notes.length > 0 || clients.length > 0) return;
+  const now = new Date();
+  const today = fmtDate(now);
+  const yesterday = fmtDate(new Date(now - 86400000));
+  const tomorrow = fmtDate(new Date(now + 86400000));
+  const nextWeek = fmtDate(new Date(now + 7*86400000));
+
+  clients = [
+    {id:uid(),name:'XX精密机械（MAZAK进口清关）',stage:'单证审核阶段',nextStep:'核对日方提供的装箱单与发票',blocker:'商检证书尚未到位',status:'blocked',createdAt:yesterday,pipelineId:''},
+    {id:uid(),name:'苏州XX电子科技',stage:'方案报价',nextStep:'发送定制化报关方案',blocker:'',status:'active',createdAt:today,pipelineId:''},
+    {id:uid(),name:'浙江区域直客拓展计划',stage:'客户调研',nextStep:'筛选20家潜在直客进行拜访',blocker:'',status:'active',createdAt:today,pipelineId:''},
+  ];
+  // Pipeline customers
+  customerList = [
+    {id:uid(),name:'上海XX进出口有限公司',tag:'reported',contact:'张总',phone:'138****6789',company:'上海XX进出口有限公司',notes:'主营机电产品进口，已确认长期合作意向',createdAt:yesterday},
+    {id:uid(),name:'宁波XX国际贸易',tag:'reporting',contact:'李经理',phone:'139****8901',company:'宁波XX国际贸易有限公司',notes:'正在准备报备材料，预计下周提交',createdAt:today},
+    {id:uid(),name:'杭州XX供应链科技',tag:'pending',contact:'王总',phone:'136****2345',company:'杭州XX供应链科技有限公司',notes:'初次接触，了解报关代理需求',createdAt:today},
+  ];
+  // Auto-create existing client for reported customer (since task links to it)
+  const pipeShanghai = customerList.find(c => c.name === '上海XX进出口有限公司');
+  if (pipeShanghai) {
+    clients.push({id:uid(),name:pipeShanghai.name,pipelineId:pipeShanghai.id,stage:'已报备，待跟进',nextStep:'了解客户具体进口需求',blocker:'',status:'active',createdAt:today});
+  }
+  tasks = [
+    {id:uid(),title:'跟进XX精密机械 MAZAK进口清关',priority:'P0',deadline:yesterday,tags:[],completed:false,rolloverCount:1,clientId:clients[0].id,createdAt:yesterday},
+    {id:uid(),title:'准备苏州区域客户拜访方案',priority:'P1',deadline:today,tags:[],completed:false,rolloverCount:0,clientId:clients[2].id,createdAt:today},
+    {id:uid(),title:'整理上月报关数据报表',priority:'P2',deadline:tomorrow,tags:[],completed:false,rolloverCount:0,clientId:'',createdAt:today},
+    {id:uid(),title:'回复日本供应商邮件',priority:'P1',deadline:yesterday,tags:[],completed:true,rolloverCount:0,clientId:clients[0].id,createdAt:yesterday},
+    {id:uid(),title:'海关新政解读与内部培训',priority:'P1',deadline:nextWeek,tags:[],completed:false,rolloverCount:0,clientId:'',createdAt:today},
+  ];
+  notes = [
+    {id:uid(),content:'进口机床税率可能有调整，需要关注海关总署最新公告',tags:['报关','政策'],createdAt:today},
+    {id:uid(),content:'客户提到希望了解综合保税区的优惠政策，可做专题介绍',tags:['客户','方案'],createdAt:yesterday},
+    {id:uid(),content:'XX精密机械商检证书迟迟未到，可能影响清关进度，需要催一下',tags:['报关','卡点'],createdAt:yesterday},
+    {id:uid(),content:'可以试试用视频会议替代上门拜访，提高新客户触达效率',tags:['客户','灵感'],createdAt:today},
+    {id:uid(),content:'下周计划启动浙江区域第二批直客筛选，优先制造业方向',tags:['销售','计划'],createdAt:today},
+  ];
+  saveTasks(); saveNotes(); saveClients(); saveCustomerList();
+}
+
+function fmtDate(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function uid() { return Date.now().toString(36) + Math.random().toString(36).substr(2,6); }
+function fmtDateCN(d) {
+  const parts = d.split('-');
+  return `${parseInt(parts[1])}月${parseInt(parts[2])}日`;
+}
+function isOverdue(d) { return d && d < fmtDate(new Date()); }
+function isToday(d) { return d === fmtDate(new Date()); }
+function isFuture(d) { return d && d > fmtDate(new Date()); }
+
+// ===== INIT =====
+loadData();
+seedExamples();
+initSyncOnStart();
+
+// ===== NAVIGATION =====
+document.querySelectorAll('.nav-item, .mobile-nav-item').forEach(el => {
+  el.addEventListener('click', function() {
+    const module = this.dataset.module;
+    switchModule(module);
+  });
+});
+function switchModule(module) {
+  currentModule = module;
+  document.querySelectorAll('.nav-item, .mobile-nav-item').forEach(e => e.classList.remove('active'));
+  document.querySelectorAll(`.nav-item[data-module="${module}"], .mobile-nav-item[data-module="${module}"]`).forEach(e => e.classList.add('active'));
+  document.querySelectorAll('.module-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + module).classList.add('active');
+  if (module === 'review') renderReview();
+  if (module === 'notes') renderNotes();
+  if (module === 'tasks') renderTasks();
+  if (module === 'clients') renderClients();
+  if (module === 'pipeline') renderPipeline();
+}
+
+// ===== ALERT BAR =====
+function renderAlert() {
+  const today = fmtDate(new Date());
+  const overdueTasks = tasks.filter(t => !t.completed && isOverdue(t.deadline));
+  const blockedClients = clients.filter(p => p.status === 'blocked');
+  const yesterday = fmtDate(new Date(Date.now() - 86400000));
+
+  let html = '';
+  if (overdueTasks.length > 0) {
+    html += `<div class="alert-item">
+      <span class="alert-badge danger">逾期</span>
+      <span class="alert-text"><span class="red">${overdueTasks.length} 个任务</span>已过期未完成</span>
+      <div class="alert-actions">
+        <button class="btn-sm primary" onclick="switchModule('tasks')">去处理</button>
+      </div>
+    </div>`;
+  }
+  if (blockedClients.length > 0) {
+    html += `<div class="alert-item">
+      <span class="alert-badge warning">卡住</span>
+      <span class="alert-text"><span class="red">${blockedClients.length} 个客户</span>存在阻塞</span>
+      <div class="alert-actions">
+        <button class="btn-sm primary" onclick="switchModule('clients')">去处理</button>
+      </div>
+    </div>`;
+  }
+  if (!html) {
+    html = `<div class="alert-item"><span style="font-size:.8rem;color:#64748b">一切正常，继续加油</span></div>`;
+  }
+  document.getElementById('alertContent').innerHTML = html;
+}
+
+// ===== TASKS =====
+function renderTasks() {
+  const today = fmtDate(new Date());
+  const container = document.getElementById('taskList');
+  if (tasks.length === 0) {
+    container.innerHTML = `<div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" width="60" height="60"><rect x="3" y="3" width="18" height="18" rx="3"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="12" y2="16"/></svg>
+      <p>暂无待办，点击「新建任务」开始</p>
+    </div>`;
+    return;
+  }
+  // Group tasks by date
+  const overdue = tasks.filter(t => !t.completed && isOverdue(t.deadline));
+  const todayTasks = tasks.filter(t => !t.completed && isToday(t.deadline));
+  const futureTasks = tasks.filter(t => !t.completed && isFuture(t.deadline));
+  const completed = tasks.filter(t => t.completed);
+  const noDate = tasks.filter(t => !t.completed && !t.deadline);
+
+  let html = '';
+  // Overdue
+  if (overdue.length > 0) {
+    html += `<div class="task-group">
+      <div class="task-group-title"><span class="dot past"></span>已逾期（${overdue.length}）</div>`;
+    overdue.forEach(t => html += taskCard(t, true));
+    html += `</div>`;
+  }
+  // Today
+  if (todayTasks.length > 0 || noDate.length > 0) {
+    const allToday = [...todayTasks, ...noDate];
+    html += `<div class="task-group">
+      <div class="task-group-title"><span class="dot today"></span>今天 · ${fmtDateCN(today)}（${allToday.length}）</div>`;
+    allToday.forEach(t => html += taskCard(t, false));
+    html += `</div>`;
+  }
+  // Future
+  if (futureTasks.length > 0) {
+    const grouped = {};
+    futureTasks.forEach(t => {
+      if (!grouped[t.deadline]) grouped[t.deadline] = [];
+      grouped[t.deadline].push(t);
+    });
+    Object.keys(grouped).sort().forEach(date => {
+      html += `<div class="task-group">
+        <div class="task-group-title"><span class="dot future"></span>${fmtDateCN(date)}（${grouped[date].length}）</div>`;
+      grouped[date].forEach(t => html += taskCard(t, false));
+      html += `</div>`;
+    });
+  }
+  // Completed
+  if (completed.length > 0) {
+    html += `<div class="task-group" style="margin-top:20px">
+      <div class="task-group-title" style="color:#94a3b8">已完成（${completed.length}）</div>`;
+    completed.forEach(t => html += taskCard(t, false));
+    html += `</div>`;
+  }
+  container.innerHTML = html;
+}
+
+function taskCard(t, isOverdueFlag) {
+  const prioClass = 'tag-p' + (t.priority || 'P1').toLowerCase().replace('p','');
+  const completedClass = t.completed ? 'completed' : '';
+  const overdueClass = isOverdueFlag ? 'overdue' : '';
+  // Find client name from customerList (clientId always points to pipeline)
+  let clientName = '';
+  if (t.clientId) {
+    const fromPipe = customerList.find(c => c.id === t.clientId);
+    if (fromPipe) clientName = fromPipe.name;
+    else {
+      // fallback: try clients for legacy data
+      const fromClients = clients.find(p => p.id === t.clientId);
+      if (fromClients) clientName = fromClients.name;
+    }
+  }
+
+  let tagHtml = '';
+  // Derive tags from linked client in customerList
+  let displayTags = t.tags || [];
+  if (t.clientId) {
+    const linkedClient = customerList.find(c => c.id === t.clientId);
+    if (linkedClient && linkedClient.tag) {
+      const tagMap = {reported:'已报备客户',reporting:'报备中客户',pending:'待报备客户'};
+      const label = tagMap[linkedClient.tag];
+      if (label && !displayTags.includes(label)) displayTags = [label];
+    }
+  }
+  if (displayTags.length > 0) {
+    const tagClassMap = {'已报备客户':'tag-client-key','报备中客户':'tag-client-mid','待报备客户':'tag-client-new'};
+    displayTags.forEach(tag => {
+      const cls = tagClassMap[tag] || 'tag-client-mid';
+      tagHtml += `<span class="tag ${cls}">${tag}</span>`;
+    });
+  }
+
+  let rolloverHtml = '';
+  if (t.rolloverCount > 0) {
+    rolloverHtml = `<span class="tag tag-rollover">顺延${t.rolloverCount}次</span>`;
+  }
+
+  let clientHtml = '';
+  if (clientName) {
+    clientHtml = `<span class="tag tag-project">${clientName}</span>`;
+  }
+
+  let actionsHtml = '';
+  if (!t.completed && isOverdueFlag) {
+    actionsHtml = `<button class="btn-task rollover" onclick="rolloverTask('${t.id}')">顺延到今天</button>`;
+  }
+
+  return `<div class="task-item ${completedClass} ${overdueClass}">
+    <div class="task-check ${t.completed ? 'done' : ''}" onclick="toggleTask('${t.id}')"></div>
+    <div class="task-info">
+      <div class="task-title">${escHtml(t.title)}</div>
+      <div class="task-detail">
+        <span class="tag ${prioClass}">${t.priority || 'P1'}</span>
+        ${t.deadline ? `<span>${fmtDateCN(t.deadline)}</span>` : ''}
+        ${tagHtml}
+        ${rolloverHtml}
+        ${clientHtml}
+      </div>
+    </div>
+    <div class="task-right">
+      ${actionsHtml}
+      <button class="btn-task ghost" onclick="editTask('${t.id}')" title="编辑">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      </button>
+      <button class="btn-task ghost" onclick="deleteTask('${t.id}')" title="删除" style="color:#ef4444">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+      </button>
+    </div>
+  </div>`;
+}
+
+function escHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function toggleTask(id) {
+  const t = tasks.find(t => t.id === id);
+  if (t) { t.completed = !t.completed; saveTasks(); renderAll(); }
+}
+function rolloverTask(id) {
+  const t = tasks.find(t => t.id === id);
+  if (t) {
+    t.deadline = fmtDate(new Date());
+    t.rolloverCount = (t.rolloverCount || 0) + 1;
+    saveTasks();
+    showToast('任务已顺延到今天');
+    renderAll();
+  }
+}
+function deleteTask(id) {
+  tasks = tasks.filter(t => t.id !== id);
+  saveTasks(); renderAll();
+}
+function editTask(id) {
+  const t = tasks.find(t => t.id === id);
+  if (!t) return;
+  document.getElementById('taskEditId').value = id;
+  document.getElementById('taskTitle').value = t.title;
+  document.getElementById('taskPriority').value = t.priority || 'P1';
+  document.getElementById('taskDeadline').value = t.deadline || '';
+  document.getElementById('taskClientSearch').value = '';
+  document.getElementById('taskClient').value = t.clientId || '';
+  document.getElementById('taskModalTitle').textContent = '编辑任务';
+  populateClientSelect();
+  document.getElementById('taskModal').classList.add('show');
+}
+function openTaskModal() {
+  document.getElementById('taskEditId').value = '';
+  document.getElementById('taskTitle').value = '';
+  document.getElementById('taskPriority').value = 'P1';
+  document.getElementById('taskDeadline').value = '';
+  document.getElementById('taskClientSearch').value = '';
+  document.getElementById('taskClient').value = '';
+  document.getElementById('taskModalTitle').textContent = '新建任务';
+  populateClientSelect();
+  document.getElementById('taskModal').classList.add('show');
+}
+function closeTaskModal() { document.getElementById('taskModal').classList.remove('show'); }
+function saveTask() {
+  const id = document.getElementById('taskEditId').value;
+  const title = document.getElementById('taskTitle').value.trim();
+  if (!title) { showToast('请输入任务内容'); return; }
+  const priority = document.getElementById('taskPriority').value;
+  const deadline = document.getElementById('taskDeadline').value;
+  const clientId = document.getElementById('taskClient').value;
+  // Auto-derive tags from linked client in customerList
+  let tags = [];
+  if (clientId) {
+    const linkedClient = customerList.find(c => c.id === clientId);
+    if (linkedClient && linkedClient.tag) {
+      const tagMap = {reported:'已报备客户',reporting:'报备中客户',pending:'待报备客户'};
+      const label = tagMap[linkedClient.tag] || '';
+      if (label) tags = [label];
+    }
+  }
+
+  if (id) {
+    const t = tasks.find(t => t.id === id);
+    if (t) {
+      t.title = title; t.priority = priority; t.deadline = deadline;
+      t.tags = tags; t.clientId = clientId;
+    }
+  } else {
+    tasks.push({
+      id: uid(), title, priority, deadline, tags, completed: false,
+      rolloverCount: 0, clientId, createdAt: fmtDate(new Date())
+    });
+  }
+
+  // Auto-create existing client entry when a task links to a pipeline customer
+  if (clientId) {
+    autoCreateClientFromPipeline(clientId);
+  }
+
+  saveTasks(); closeTaskModal(); renderAll();
+}
+
+// Auto-create a clients entry from a pipeline customer if not already exists
+function autoCreateClientFromPipeline(pipelineId) {
+  const cust = customerList.find(c => c.id === pipelineId);
+  if (!cust) return;
+  // Check if clients already has an entry for this pipeline customer
+  const exists = clients.find(c => c.pipelineId === pipelineId);
+  if (exists) return;
+  const newClient = {
+    id: uid(),
+    name: cust.name,
+    pipelineId: pipelineId,
+    stage: '跟进中',
+    nextStep: '',
+    blocker: '',
+    status: 'active',
+    createdAt: fmtDate(new Date())
+  };
+  clients.push(newClient);
+  saveClients();
+}
+function populateClientSelect() {
+  const sel = document.getElementById('taskClient');
+  // Store full client list for search filtering
+  window._clientOptions = [];
+
+  let html = '<option value="">不关联客户</option>';
+  const groups = [
+    {tag:'reported', label:'已报备客户'},
+    {tag:'reporting', label:'报备中客户'},
+    {tag:'pending', label:'待报备客户'},
+  ];
+
+  groups.forEach(g => {
+    const items = customerList.filter(c => c.tag === g.tag);
+    if (items.length > 0) {
+      html += `<optgroup label="${g.label}">`;
+      items.forEach(c => {
+        html += `<option value="${c.id}">${escHtml(c.name)}</option>`;
+        window._clientOptions.push({id: c.id, name: c.name, tag: g.label});
+      });
+      html += '</optgroup>';
+    }
+  });
+
+  sel.innerHTML = html;
+}
+
+function filterClientSelect() {
+  const search = (document.getElementById('taskClientSearch').value || '').toLowerCase();
+  const sel = document.getElementById('taskClient');
+  const options = window._clientOptions || [];
+  if (!search) { populateClientSelect(); return; }
+
+  let html = '<option value="">不关联客户</option>';
+  const groups = {};
+  options.filter(o =>
+    o.name.toLowerCase().includes(search) || o.tag.includes(search)
+  ).forEach(o => {
+    if (!groups[o.tag]) groups[o.tag] = [];
+    groups[o.tag].push(o);
+  });
+
+  ['已报备客户','报备中客户','待报备客户'].forEach(label => {
+    if (groups[label] && groups[label].length > 0) {
+      html += `<optgroup label="${label}">`;
+      groups[label].forEach(o => html += `<option value="${o.id}">${escHtml(o.name)}</option>`);
+      html += '</optgroup>';
+    }
+  });
+
+  sel.innerHTML = html || '<option value="">无匹配客户</option>';
+}
+
+// Pipeline tag selection
+document.getElementById('pipelineTags').addEventListener('click', function(e) {
+  if (e.target.classList.contains('tag-option')) {
+    document.querySelectorAll('#pipelineTags .tag-option').forEach(el => el.classList.remove('selected'));
+    e.target.classList.add('selected');
+  }
+});
+
+// ===== NOTES =====
+function renderNotes() {
+  const search = (document.getElementById('noteSearchInput').value || '').toLowerCase();
+  const container = document.getElementById('noteList');
+  let filtered = notes;
+  if (search) {
+    filtered = notes.filter(n =>
+      n.content.toLowerCase().includes(search) ||
+      (n.tags || []).some(t => t.toLowerCase().includes(search))
+    );
+  }
+  // Render tag filter buttons
+  const allTags = new Set();
+  notes.forEach(n => (n.tags || []).forEach(t => allTags.add(t)));
+  let tagFilterHtml = '';
+  allTags.forEach(t => {
+    tagFilterHtml += `<button class="btn-note-tag" onclick="filterNotesByTag('${escHtml(t)}',this)">${escHtml(t)}</button>`;
+  });
+  document.getElementById('noteTagFilters').innerHTML = tagFilterHtml;
+
+  if (filtered.length === 0) {
+    container.innerHTML = `<div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" width="60" height="60"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <p>暂无记录，点击「记录想法」开始</p>
+    </div>`;
+    return;
+  }
+  container.innerHTML = filtered.sort((a,b) => b.createdAt.localeCompare(a.createdAt)).map(n => {
+    const tagHtml = (n.tags || []).map(t => `<span class="tag tag-project">${escHtml(t)}</span>`).join('');
+    return `<div class="card note-card">
+      <div class="card-header">
+        <div class="card-title">${escHtml(n.content)}</div>
+        <div class="card-actions">
+          <button class="btn-task ghost" onclick="editNote('${n.id}')" title="编辑">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button class="btn-task ghost" onclick="deleteNote('${n.id}')" title="删除" style="color:#ef4444">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+          </button>
+        </div>
+      </div>
+      ${tagHtml ? `<div class="note-tag-bar">${tagHtml}</div>` : ''}
+      <div class="card-footer">
+        <span>${fmtDateCN(n.createdAt)}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+function filterNotesByTag(tag, btn) {
+  document.getElementById('noteSearchInput').value = tag;
+  document.querySelectorAll('#noteTagFilters .btn-note-tag').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderNotes();
+}
+function openNoteModal() {
+  document.getElementById('noteEditId').value = '';
+  document.getElementById('noteContent').value = '';
+  document.getElementById('noteTags').value = '';
+  document.getElementById('noteModalTitle').textContent = '记录想法';
+  document.getElementById('noteModal').classList.add('show');
+}
+function closeNoteModal() { document.getElementById('noteModal').classList.remove('show'); }
+function editNote(id) {
+  const n = notes.find(n => n.id === id);
+  if (!n) return;
+  document.getElementById('noteEditId').value = id;
+  document.getElementById('noteContent').value = n.content;
+  document.getElementById('noteTags').value = (n.tags || []).join(', ');
+  document.getElementById('noteModalTitle').textContent = '编辑想法';
+  document.getElementById('noteModal').classList.add('show');
+}
+function saveNote() {
+  const id = document.getElementById('noteEditId').value;
+  const content = document.getElementById('noteContent').value.trim();
+  if (!content) { showToast('请输入内容'); return; }
+  const tags = document.getElementById('noteTags').value.split(',').map(t => t.trim()).filter(Boolean);
+  if (id) {
+    const n = notes.find(n => n.id === id);
+    if (n) { n.content = content; n.tags = tags; }
+  } else {
+    notes.push({ id: uid(), content, tags, createdAt: fmtDate(new Date()) });
+  }
+  saveNotes(); closeNoteModal(); renderNotes(); renderAll();
+}
+function deleteNote(id) {
+  notes = notes.filter(n => n.id !== id);
+  saveNotes(); renderNotes(); renderAll();
+}
+
+// ===== PIPELINE（客户清单） =====
+function renderPipeline() {
+  const container = document.getElementById('pipelineList');
+  if (customerList.length === 0) {
+    container.innerHTML = `<div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" width="60" height="60"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+      <p>暂无客户，点击「添加客户」开始</p>
+    </div>`;
+    return;
+  }
+
+  const sections = [
+    {tag:'reported',label:'已报备客户',dotClass:'reported',emptyMsg:'暂无已报备客户'},
+    {tag:'reporting',label:'报备中客户',dotClass:'reporting',emptyMsg:'暂无报备中客户'},
+    {tag:'pending',label:'待报备客户',dotClass:'pending',emptyMsg:'暂无待报备客户'},
+  ];
+
+  container.innerHTML = sections.map(sec => {
+    const items = customerList.filter(c => c.tag === sec.tag);
+    if (items.length === 0) {
+      return `<div class="pipeline-section">
+        <div class="pipeline-section-header">
+          <span class="pipeline-dot ${sec.dotClass}"></span>
+          <h3>${sec.label}<span class="pipeline-count">（0）</span></h3>
+        </div>
+        <div style="color:#94a3b8;font-size:.85rem;padding:20px;text-align:center;background:#f8fafc;border-radius:8px;border:1px dashed #e2e8f0">${sec.emptyMsg}</div>
+      </div>`;
+    }
+    return `<div class="pipeline-section">
+      <div class="pipeline-section-header">
+        <span class="pipeline-dot ${sec.dotClass}"></span>
+        <h3>${sec.label}<span class="pipeline-count">（${items.length}）</span></h3>
+      </div>
+      <div class="pipeline-grid">
+        ${items.map(c => renderPipelineCard(c)).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderPipelineCard(c) {
+  const tagLabel = {reported:'已报备客户',reporting:'报备中客户',pending:'待报备客户'}[c.tag];
+  const linkedClient = clients.find(cl => cl.pipelineId === c.id);
+  const syncedBadge = linkedClient
+    ? `<span class="pipeline-synced-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>已有待办任务</span>`
+    : '';
+
+  let actionBtn = '';
+  if (c.tag === 'reporting') {
+    actionBtn = `<button class="pipeline-btn success" onclick="event.stopPropagation();markAsReported('${c.id}')">✓ 报备成功</button>`;
+  } else if (c.tag === 'pending') {
+    actionBtn = `<button class="pipeline-btn warning" onclick="event.stopPropagation();startReporting('${c.id}')">▶ 开始报备</button>`;
+  }
+
+  // Find linked tasks (directly by pipeline id)
+  const linkedTasks = tasks.filter(t => t.clientId === c.id);
+  const doneCount = linkedTasks.filter(t => t.completed).length;
+  const totalCount = linkedTasks.length;
+
+  let tasksHtml = '';
+  if (totalCount > 0) {
+    tasksHtml = `<div class="pipeline-tasks-section">
+      <div style="font-size:.75rem;color:#64748b;margin-bottom:6px;font-weight:600">关联待办（${doneCount}/${totalCount}）</div>
+      ${linkedTasks.map(t => {
+        const overdueTask = t.deadline && !t.completed && t.deadline < fmtDate(new Date());
+        const statusColor = t.completed ? '#16a34a' : (overdueTask ? '#dc2626' : '#64748b');
+        const statusText = t.completed ? '已完成' : (overdueTask ? '逾期' : '进行中');
+        return `<div class="client-task-item">
+          <div class="task-check-mini ${t.completed?'done':''}" onclick="event.stopPropagation();toggleTask('${t.id}')"></div>
+          <span class="task-text ${t.completed?'done':''}" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(t.title)}</span>
+          <span style="font-size:.65rem;color:${statusColor};flex-shrink:0">${statusText}${t.deadline?' '+t.deadline:''}</span>
+        </div>`;
+      }).join('')}
+    </div>`;
+  } else {
+    tasksHtml = `<div class="pipeline-tasks-section" style="color:#94a3b8;font-size:.75rem;text-align:center;padding:8px 0">暂无关联待办</div>`;
+  }
+
+  return `<div class="pipeline-card ${c.tag}" id="pipe-${c.id}">
+    <div class="pipeline-card-header" onclick="togglePipelineCard('${c.id}')">
+      <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
+        <span class="pipeline-card-name" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(c.name)}</span>
+        ${syncedBadge}
+      </div>
+      <span class="expand-arrow">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+      </span>
+    </div>
+    <div class="pipeline-card-body">
+      <span class="pipeline-tag ${c.tag}">${tagLabel}</span>
+      <div class="pipeline-card-info">
+        ${c.contact ? `<span>👤 联系人：${escHtml(c.contact)}</span>` : ''}
+        ${c.phone ? `<span>📞 电话：${escHtml(c.phone)}</span>` : ''}
+        ${c.company && c.company !== c.name ? `<span>🏢 公司：${escHtml(c.company)}</span>` : ''}
+        ${c.notes ? `<span>📝 ${escHtml(c.notes)}</span>` : ''}
+      </div>
+      <div class="pipeline-card-actions">
+        ${actionBtn}
+        <button class="pipeline-btn edit-pipe" onclick="event.stopPropagation();editPipeline('${c.id}')">编辑</button>
+        <button class="pipeline-btn delete-pipe" onclick="event.stopPropagation();deletePipeline('${c.id}')">删除</button>
+      </div>
+      ${tasksHtml}
+    </div>
+  </div>`;
+}
+
+function togglePipelineCard(id) {
+  const card = document.getElementById('pipe-' + id);
+  if (!card) return;
+  card.classList.toggle('expanded');
+}
+
+function openPipelineModal() {
+  document.getElementById('pipelineEditId').value = '';
+  document.getElementById('pipelineName').value = '';
+  document.getElementById('pipelineContact').value = '';
+  document.getElementById('pipelinePhone').value = '';
+  document.getElementById('pipelineCompany').value = '';
+  document.getElementById('pipelineNotes').value = '';
+  document.getElementById('pipelineModalTitle').textContent = '添加客户';
+  document.querySelectorAll('#pipelineTags .tag-option').forEach(el => el.classList.remove('selected'));
+  document.querySelector('#pipelineTags .tag-option[data-tag="reporting"]').classList.add('selected');
+  document.getElementById('pipelineModal').classList.add('show');
+}
+
+function closePipelineModal() { document.getElementById('pipelineModal').classList.remove('show'); }
+
+function editPipeline(id) {
+  const c = customerList.find(c => c.id === id);
+  if (!c) return;
+  document.getElementById('pipelineEditId').value = id;
+  document.getElementById('pipelineName').value = c.name;
+  document.getElementById('pipelineContact').value = c.contact || '';
+  document.getElementById('pipelinePhone').value = c.phone || '';
+  document.getElementById('pipelineCompany').value = c.company || '';
+  document.getElementById('pipelineNotes').value = c.notes || '';
+  document.getElementById('pipelineModalTitle').textContent = '编辑客户';
+  document.querySelectorAll('#pipelineTags .tag-option').forEach(el => {
+    el.classList.toggle('selected', el.dataset.tag === c.tag);
+  });
+  document.getElementById('pipelineModal').classList.add('show');
+}
+
+function savePipeline() {
+  const id = document.getElementById('pipelineEditId').value;
+  const name = document.getElementById('pipelineName').value.trim();
+  if (!name) { showToast('请输入客户名称'); return; }
+  const contact = document.getElementById('pipelineContact').value.trim();
+  const phone = document.getElementById('pipelinePhone').value.trim();
+  const company = document.getElementById('pipelineCompany').value.trim();
+  const notes = document.getElementById('pipelineNotes').value.trim();
+  const tagEl = document.querySelector('#pipelineTags .tag-option.selected');
+  const tag = tagEl ? tagEl.dataset.tag : 'pending';
+
+  if (id) {
+    const c = customerList.find(c => c.id === id);
+    if (c) {
+      c.name = name; c.contact = contact; c.phone = phone;
+      c.company = company; c.notes = notes; c.tag = tag;
+    }
+  } else {
+    const newCust = { id: uid(), name, contact, phone, company, notes, tag, createdAt: fmtDate(new Date()) };
+    customerList.push(newCust);
+  }
+  saveCustomerList(); closePipelineModal(); renderAll();
+}
+
+function deletePipeline(id) {
+  const cust = customerList.find(c => c.id === id);
+  // Unlink all tasks referencing this pipeline customer
+  let unlinked = 0;
+  tasks.forEach(t => { if (t.clientId === id) { t.clientId = ''; unlinked++; } });
+  if (unlinked > 0) saveTasks();
+  // Also remove linked client entry from 现有客户
+  clients = clients.filter(c => c.pipelineId !== id);
+  saveClients();
+  customerList = customerList.filter(c => c.id !== id);
+  saveCustomerList(); renderAll();
+  if (unlinked > 0) showToast(`已删除，${unlinked} 项待办已取消关联`);
+}
+
+// Status transitions
+function markAsReported(id) {
+  const c = customerList.find(c => c.id === id);
+  if (!c || c.tag !== 'reporting') return;
+  c.tag = 'reported';
+  saveCustomerList(); renderAll(); showToast('已标记为报备成功');
+}
+
+function startReporting(id) {
+  const c = customerList.find(c => c.id === id);
+  if (!c || c.tag !== 'pending') return;
+  c.tag = 'reporting';
+  saveCustomerList(); renderAll(); showToast('已开始报备');
+}
+
+// ===== CLIENTS =====
+function renderClients() {
+  const container = document.getElementById('clientList');
+  if (clients.length === 0) {
+    container.innerHTML = `<div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" width="60" height="60"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+      <p>暂无客户，点击「新建客户」开始</p>
+    </div>`;
+    return;
+  }
+  container.innerHTML = clients.sort((a,b) => {
+    const o = {active:0,blocked:1,completed:2};
+    return (o[a.status]||0) - (o[b.status]||0);
+  }).map(p => {
+    // Find linked tasks via pipelineId (or legacy direct clientId match)
+    const linkedTasks = tasks.filter(t => t.clientId === p.pipelineId || t.clientId === p.id);
+    const doneCount = linkedTasks.filter(t => t.completed).length;
+    const totalCount = linkedTasks.length;
+    const progress = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
+    const statusClass = p.status === 'blocked' ? 'blocked' : (p.status === 'completed' ? 'completed' : '');
+    const statusText = {active:'进行中',blocked:'已阻塞',completed:'已完成'}[p.status] || '进行中';
+    const statusColor = {active:'#0d9488',blocked:'#dc2626',completed:'#16a34a'}[p.status] || '#0d9488';
+
+    // Build expanded task list
+    let expandedHtml = '';
+    if (linkedTasks.length > 0) {
+      expandedHtml = linkedTasks.map(t => {
+        const overdueFlag = !t.completed && isOverdue(t.deadline);
+        const statusLabel = t.completed ? '已完成' : (overdueFlag ? '逾期' : '进行中');
+        const statusCls = t.completed ? 'done' : (overdueFlag ? 'overdue' : '');
+        return `<div class="client-task-item">
+          <div class="task-check-mini ${t.completed?'done':''}" onclick="event.stopPropagation();toggleTask('${t.id}');renderClients()"></div>
+          <span class="task-text ${t.completed?'done':''}">${escHtml(t.title)}</span>
+          <span class="tag ${t.completed?'tag-p2':(overdueFlag?'tag-p0':'tag-p1')}" style="font-size:.65rem">${statusLabel}</span>
+          ${t.deadline ? `<span style="font-size:.65rem;color:#94a3b8">${fmtDateCN(t.deadline)}</span>` : ''}
+        </div>`;
+      }).join('');
+      expandedHtml = `<div class="client-expand">
+        <div style="font-size:.75rem;font-weight:600;color:#475569;margin-bottom:8px">关联待办（${doneCount}/${totalCount}）</div>
+        ${expandedHtml}
+      </div>`;
+    } else {
+      expandedHtml = `<div class="client-expand">
+        <div style="color:#94a3b8;font-size:.78rem;padding:8px 0">暂无关联待办，点击上方 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg> 关联待办任务</div>
+      </div>`;
+    }
+
+    let progressHtml = '';
+    if (totalCount > 0) {
+      progressHtml = `<div class="client-progress">
+        <div class="client-progress-bar ${p.status==='blocked'?'blocked':''}" style="width:${progress}%"></div>
+      </div>`;
+    }
+
+    return `<div class="card client-card ${statusClass}" onclick="toggleClientExpand('${p.id}')">
+      <div class="card-header">
+        <div>
+          <div class="card-title">
+            ${escHtml(p.name)}
+            <span class="expand-icon">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            </span>
+          </div>
+          <span class="tag" style="background:${statusColor}15;color:${statusColor};font-weight:600">${statusText}</span>
+          ${totalCount > 0 ? `<span style="font-size:.7rem;color:#94a3b8;margin-left:6px">${doneCount}/${totalCount} 待办</span>` : ''}
+        </div>
+        <div class="card-actions" onclick="event.stopPropagation()">
+          <button class="btn-task ghost" onclick="openLinkModal('${p.id}')" title="关联任务">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+          </button>
+          <button class="btn-task ghost" onclick="editClient('${p.id}')" title="编辑">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button class="btn-task ghost" onclick="deleteClient('${p.id}')" title="删除" style="color:#ef4444">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="card-body">
+        ${p.stage ? `<div style="margin-bottom:4px"><strong>当前阶段：</strong>${escHtml(p.stage)}</div>` : ''}
+        ${p.nextStep ? `<div style="margin-bottom:4px"><strong>下一步：</strong>${escHtml(p.nextStep)}</div>` : ''}
+        ${p.blocker ? `<div style="color:#dc2626"><strong>⚠ 卡点：</strong>${escHtml(p.blocker)}</div>` : ''}
+      </div>
+      ${progressHtml}
+      <div class="client-expand-hint" style="font-size:.7rem;color:#0d9488;margin-top:6px">点击展开查看关联待办</div>
+      ${expandedHtml}
+    </div>`;
+  }).join('');
+}
+
+function toggleClientExpand(id) {
+  const cards = document.querySelectorAll('.client-card');
+  cards.forEach(card => {
+    const btn = card.querySelector('[onclick*="openLinkModal"]');
+    const cid = btn ? btn.getAttribute('onclick').match(/'([^']+)'/)[1] : '';
+    if (cid === id) {
+      card.classList.toggle('expanded');
+    }
+  });
+}
+
+function openClientModal() {
+  document.getElementById('clientEditId').value = '';
+  document.getElementById('clientName').value = '';
+  document.getElementById('clientStage').value = '';
+  document.getElementById('clientNext').value = '';
+  document.getElementById('clientBlocker').value = '';
+  document.getElementById('clientModalTitle').textContent = '新建客户';
+  document.getElementById('clientModal').classList.add('show');
+}
+function closeClientModal() { document.getElementById('clientModal').classList.remove('show'); }
+function editClient(id) {
+  const p = clients.find(p => p.id === id);
+  if (!p) return;
+  document.getElementById('clientEditId').value = id;
+  document.getElementById('clientName').value = p.name;
+  document.getElementById('clientStage').value = p.stage || '';
+  document.getElementById('clientNext').value = p.nextStep || '';
+  document.getElementById('clientBlocker').value = p.blocker || '';
+  document.getElementById('clientModalTitle').textContent = '编辑客户';
+  document.getElementById('clientModal').classList.add('show');
+}
+function saveClient() {
+  const id = document.getElementById('clientEditId').value;
+  const name = document.getElementById('clientName').value.trim();
+  if (!name) { showToast('请输入客户名称'); return; }
+  const stage = document.getElementById('clientStage').value.trim();
+  const nextStep = document.getElementById('clientNext').value.trim();
+  const blocker = document.getElementById('clientBlocker').value.trim();
+  const status = blocker ? 'blocked' : 'active';
+
+  if (id) {
+    const p = clients.find(p => p.id === id);
+    if (p) {
+      p.name = name; p.stage = stage; p.nextStep = nextStep;
+      p.blocker = blocker; p.status = blocker ? 'blocked' : 'active';
+    }
+  } else {
+    clients.push({ id: uid(), name, stage, nextStep, blocker, status, createdAt: fmtDate(new Date()) });
+  }
+  saveClients(); closeClientModal(); renderAll();
+}
+function deleteClient(id) {
+  clients = clients.filter(p => p.id !== id);
+  saveClients(); renderAll();
+  showToast('已从现有客户中移除（任务和客户清单不受影响）');
+}
+
+// Link tasks to client
+function openLinkModal(clientId) {
+  linkClientId = clientId;
+  const client = clients.find(c => c.id === clientId);
+  const effectiveId = client && client.pipelineId ? client.pipelineId : clientId;
+  const container = document.getElementById('linkTaskList');
+  container.innerHTML = tasks.map(t => {
+    const checked = t.clientId === effectiveId;
+    return `<label class="linked-task-option ${checked?'selected':''}">
+      <input type="checkbox" value="${t.id}" ${checked?'checked':''}>
+      <span style="font-size:.85rem">${escHtml(t.title)}</span>
+      ${t.completed ? '<span style="font-size:.7rem;color:#16a34a">已完成</span>' : ''}
+    </label>`;
+  }).join('');
+  document.getElementById('linkTaskModal').classList.add('show');
+}
+function closeLinkModal() { document.getElementById('linkTaskModal').classList.remove('show'); }
+function saveLinkTasks() {
+  const checks = document.querySelectorAll('#linkTaskList input[type=checkbox]');
+  const client = clients.find(c => c.id === linkClientId);
+  checks.forEach(cb => {
+    const t = tasks.find(t => t.id === cb.value);
+    if (t) {
+      // If client has a pipelineId, task.clientId points to pipeline customer
+      // Otherwise, point to the client directly
+      t.clientId = cb.checked ? (client && client.pipelineId ? client.pipelineId : linkClientId) : '';
+    }
+  });
+  saveTasks(); closeLinkModal(); renderAll();
+}
+
+// ===== WEEKLY REVIEW =====
+function renderReview() {
+  const container = document.getElementById('reviewContent');
+  const now = new Date();
+  const dayOfWeek = now.getDay();
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+  const weekStart = fmtDate(monday);
+  const today = fmtDate(now);
+
+  // Tasks completed this week
+  const weekTasks = tasks.filter(t => t.completed && t.createdAt >= weekStart);
+  const allWeekTasks = tasks.filter(t => t.createdAt >= weekStart || t.deadline >= weekStart);
+
+  // Priority distribution
+  const prioDist = {P0:0,P1:0,P2:0};
+  allWeekTasks.forEach(t => { if (prioDist[t.priority] !== undefined) prioDist[t.priority]++; });
+  const totalPrio = prioDist.P0 + prioDist.P1 + prioDist.P2 || 1;
+
+  // Client distribution
+  const projectDist = {};
+  tasks.forEach(t => {
+    if (t.clientId) {
+      const p = clients.find(p => p.id === t.clientId);
+      const name = p ? p.name : '未分类';
+      projectDist[name] = (projectDist[name] || 0) + 1;
+    }
+  });
+
+  // Blockers
+  const weekBlockers = clients.filter(p => p.status === 'blocked');
+
+  // Completion rate
+  const completedThisWeek = tasks.filter(t => t.completed).length;
+  const totalTasks = tasks.length || 1;
+
+  let html = `<div class="review-summary">
+    <div class="review-stat">
+      <div class="review-stat-value">${weekTasks.length}</div>
+      <div class="review-stat-label">本周完成</div>
+    </div>
+    <div class="review-stat">
+      <div class="review-stat-value">${totalTasks - completedThisWeek}</div>
+      <div class="review-stat-label">待完成</div>
+    </div>
+    <div class="review-stat">
+      <div class="review-stat-value">${Math.round((completedThisWeek/totalTasks)*100)}%</div>
+      <div class="review-stat-label">总完成率</div>
+    </div>
+    <div class="review-stat">
+      <div class="review-stat-value">${weekBlockers.length}</div>
+      <div class="review-stat-label">卡点客户</div>
+    </div>
+  </div>`;
+
+  // Charts row
+  html += `<div class="chart-row">
+    <div class="chart-box">
+      <h4>优先级分布</h4>
+      ${renderPieChart(prioDist, totalPrio)}
+    </div>
+    <div class="chart-box">
+      <h4>客户任务分布</h4>
+      ${renderBarChart(projectDist)}
+    </div>
+  </div>`;
+
+  // Blockers
+  if (weekBlockers.length > 0) {
+    html += `<div class="blocker-list">
+      <h4>卡点汇总（${weekBlockers.length}）</h4>
+      ${weekBlockers.map(p => `<div class="blocker-item">
+        <span class="blocker-dot"></span>
+        <strong>${escHtml(p.name)}</strong>
+        <span style="color:#64748b">— ${escHtml(p.blocker)}</span>
+      </div>`).join('')}
+    </div>`;
+  } else {
+    html += `<div class="blocker-list">
+      <h4>卡点汇总</h4>
+      <div style="color:#94a3b8;font-size:.85rem;padding:8px 0">本周无阻塞客户</div>
+    </div>`;
+  }
+
+  // AI Report
+  html += `<div class="ai-report-section">
+    <button class="ai-report-btn" onclick="generateAIReport()" id="aiReportBtn">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      一键生成本周工作周报
+    </button>
+    <div class="ai-report-result" id="aiReportResult"></div>
+  </div>`;
+
+  container.innerHTML = html;
+}
+
+function renderPieChart(dist, total) {
+  const colors = {P0:'#ef4444',P1:'#f59e0b',P2:'#16a34a'};
+  const labels = {P0:'紧急重要',P1:'重要',P2:'一般'};
+  const cx=120, cy=120, r=90;
+  let cumulative = 0;
+  let slices = '';
+  let legendHtml = '';
+  let legendY = 20;
+
+  ['P0','P1','P2'].forEach(key => {
+    const val = dist[key] || 0;
+    if (val === 0) return;
+    const angle = (val / total) * 360;
+    const startAngle = cumulative;
+    const endAngle = cumulative + angle;
+    cumulative = endAngle;
+    const x1 = cx + r * Math.cos((startAngle - 90) * Math.PI / 180);
+    const y1 = cy + r * Math.sin((startAngle - 90) * Math.PI / 180);
+    const x2 = cx + r * Math.cos((endAngle - 90) * Math.PI / 180);
+    const y2 = cy + r * Math.sin((endAngle - 90) * Math.PI / 180);
+    const largeArc = angle > 180 ? 1 : 0;
+    slices += `<path d="M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${largeArc},1 ${x2},${y2} Z" fill="${colors[key]}"/>`;
+    legendHtml += `<rect x="10" y="${legendY}" width="10" height="10" rx="2" fill="${colors[key]}"/><text x="26" y="${legendY+9}" font-size="11" fill="#475569">${labels[key]} ${val}项</text>`;
+    legendY += 18;
+  });
+
+  return `<svg viewBox="0 0 240 260" class="chart-svg">
+    ${slices}
+    ${legendHtml}
+  </svg>`;
+}
+
+function renderBarChart(dist) {
+  const entries = Object.entries(dist);
+  if (entries.length === 0) return '<div style="text-align:center;color:#94a3b8;padding:20px;font-size:.8rem">暂无数据</div>';
+
+  const maxVal = Math.max(...entries.map(e => e[1]), 1);
+  const barW = Math.min(40, 200 / entries.length);
+  const chartW = entries.length * (barW + 20) + 40;
+  const colors = ['#0d9488','#14b8a6','#2dd4bf','#5eead4','#99f6e4'];
+
+  let bars = '';
+  entries.forEach((e, i) => {
+    const h = (e[1] / maxVal) * 120;
+    const x = 50 + i * (barW + 20);
+    const y = 150 - h;
+    const color = colors[i % colors.length];
+    bars += `<rect x="${x}" y="${y}" width="${barW}" height="${h}" rx="4" fill="${color}"/>
+      <text x="${x + barW/2}" y="${y - 6}" text-anchor="middle" font-size="11" fill="#475569" font-weight="600">${e[1]}</text>
+      <text x="${x + barW/2}" y="168" text-anchor="middle" font-size="9" fill="#94a3b8">${e[0].length>8?e[0].slice(0,8)+'..':e[0]}</text>`;
+  });
+
+  return `<svg viewBox="0 0 ${Math.max(chartW,200)} 190" class="chart-svg" style="max-width:100%">${bars}</svg>`;
+}
+
+// ===== HELPER: Extract keywords from notes =====
+function extractKeywords(contents) {
+  // Simple keyword extraction: find frequent meaningful words
+  const stopWords = new Set(['的','了','和','是','就','都','而','及','与','着','或','一个','没有','我们','他们','它们','这个','那个','可以','如果','因为','所以','但是','不过','然后','已经','需要','可能','应该','已经','比较','非常','进行','使用','通过']);
+  const wordFreq = {};
+  const allText = contents.join(' ');
+  // Split by common delimiters and filter short / stop words
+  const segments = allText.split(/[，。、；！？\s,;!?]+/);
+  segments.forEach(seg => {
+    if (seg.length >= 2 && seg.length <= 6 && !stopWords.has(seg)) {
+      wordFreq[seg] = (wordFreq[seg] || 0) + 1;
+    }
+  });
+  const sorted = Object.entries(wordFreq).sort((a, b) => b[1] - a[1]);
+  const top = sorted.slice(0, 4).map(e => e[0]);
+  return top.length > 0 ? `核心关键词：${top.join('、')}` : '暂无显著关键词';
+}
+
+// ===== AI REPORT GENERATOR =====
+function generateAIReport() {
+  const btn = document.getElementById('aiReportBtn');
+  btn.disabled = true;
+  btn.textContent = '生成中...';
+
+  setTimeout(() => {
+    const now = new Date();
+    const dayOfWeek = now.getDay();
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+    const weekStart = fmtDate(monday);
+    const today = fmtDate(now);
+
+    const weekTasks = tasks.filter(t => t.deadline >= weekStart || t.createdAt >= weekStart);
+    const completedWeek = weekTasks.filter(t => t.completed);
+    const activeWeek = weekTasks.filter(t => !t.completed);
+
+    // Filter this week's notes
+    const weekNotes = notes.filter(n => n.createdAt >= weekStart && n.createdAt <= today);
+
+    // Group by client pipeline tag
+    const getClientTag = (t) => {
+      if (!t.clientId) return null;
+      const c = customerList.find(c => c.id === t.clientId);
+      return c ? c.tag : null;
+    };
+    const reportedTasks = weekTasks.filter(t => getClientTag(t) === 'reported');
+    const reportingTasks = weekTasks.filter(t => getClientTag(t) === 'reporting');
+    const pendingTasks = weekTasks.filter(t => getClientTag(t) === 'pending');
+    const otherTasks = weekTasks.filter(t => !t.clientId || !getClientTag(t));
+
+    const reportedDone = reportedTasks.filter(t => t.completed);
+    const reportingDone = reportingTasks.filter(t => t.completed);
+    const pendingDone = pendingTasks.filter(t => t.completed);
+    const otherDone = otherTasks.filter(t => t.completed);
+
+    const activeClients = clients.filter(p => p.status === 'active' || p.status === 'blocked');
+    const blockedClients = clients.filter(p => p.status === 'blocked');
+
+    // Generate report
+    let report = '';
+    report += `<h3>一、已报备客户进展</h3>`;
+
+    if (reportedTasks.length === 0) {
+      report += `<p>本周暂无已报备客户相关任务记录。</p>`;
+    } else {
+      report += `<p>本周涉及已报备客户任务共 <span class="highlight">${reportedTasks.length}</span> 项，已完成 <span class="highlight">${reportedDone.length}</span> 项`;
+      if (reportedTasks.length > 0) report += `（完成率 ${Math.round(reportedDone.length/reportedTasks.length*100)}%）`;
+      report += `。</p>`;
+      reportedTasks.forEach(t => {
+        const status = t.completed ? '✓已完成' : (isOverdue(t.deadline) ? '⚠逾期' : '进行中');
+        report += `<p>· ${escHtml(t.title)} — ${status}${t.deadline?'（'+fmtDateCN(t.deadline)+'）':''}</p>`;
+      });
+    }
+
+    report += `<h3>二、报备中与待报备客户进展</h3>`;
+    if (reportingTasks.length === 0 && pendingTasks.length === 0) {
+      report += `<p>本周暂无报备中及待报备客户相关任务记录。</p>`;
+    } else {
+      if (reportingTasks.length > 0) {
+        report += `<p><strong>报备中客户：</strong>共 ${reportingTasks.length} 项任务，完成 ${reportingDone.length} 项。</p>`;
+        reportingTasks.forEach(t => {
+          report += `<p>· ${escHtml(t.title)} — ${t.completed?'✓已完成':'进行中'}</p>`;
+        });
+      }
+      if (pendingTasks.length > 0) {
+        report += `<p><strong>待报备客户：</strong>共 ${pendingTasks.length} 项任务，完成 ${pendingDone.length} 项。</p>`;
+        pendingTasks.forEach(t => {
+          report += `<p>· ${escHtml(t.title)} — ${t.completed?'✓已完成':'进行中'}</p>`;
+        });
+      }
+    }
+
+    if (otherTasks.length > 0) {
+      report += `<h3>三、其他任务</h3>`;
+      report += `<p>本周有 <span class="highlight">${otherTasks.length}</span> 项未关联客户的任务，完成 <span class="highlight">${otherDone.length}</span> 项。</p>`;
+    }
+
+    const thinkSectionNum = otherTasks.length > 0 ? '四' : '三';
+    report += `<h3>${thinkSectionNum}、工作思考与总结</h3>`;
+
+    // === SECTION 3: Driven by weekly notes (灵感速记) ===
+    if (weekNotes.length === 0) {
+      report += `<p>本周暂无速记记录。建议养成随手记录想法的习惯——灵感转瞬即逝，及时捕捉才能在复盘时形成体系化思考。</p>`;
+    } else {
+      // Group notes by tags
+      const noteTagGroups = {};
+      const untaggedNotes = [];
+      weekNotes.forEach(n => {
+        if (!n.tags || n.tags.length === 0) {
+          untaggedNotes.push(n);
+        } else {
+          n.tags.forEach(tag => {
+            if (!noteTagGroups[tag]) noteTagGroups[tag] = [];
+            noteTagGroups[tag].push(n);
+          });
+        }
+      });
+
+      // Summarize by tag themes
+      report += `<p>本周共记录 <span class="highlight">${weekNotes.length}</span> 条速记，覆盖 ${Object.keys(noteTagGroups).length} 个主题方向。</p>`;
+
+      const tagEntries = Object.entries(noteTagGroups);
+      if (tagEntries.length > 0) {
+        report += `<p><strong>按主题归纳：</strong></p>`;
+        tagEntries.forEach(([tag, ns]) => {
+          const keywords = extractKeywords(ns.map(n => n.content));
+          report += `<p>· <strong>【${escHtml(tag)}】</strong>（${ns.length} 条）—— ${keywords}</p>`;
+          ns.forEach(n => {
+            report += `<p style="padding-left:16px;color:#475569;font-size:.9rem">"${escHtml(n.content)}"</p>`;
+          });
+        });
+      }
+
+      if (untaggedNotes.length > 0) {
+        report += `<p><strong>未分类速记：</strong></p>`;
+        untaggedNotes.forEach(n => {
+          report += `<p style="padding-left:16px;color:#475569;font-size:.9rem">· ${escHtml(n.content)}</p>`;
+        });
+      }
+
+      // Extract key reflection: detect blockers / ideas / plans from notes
+      const blockerWords = ['卡点','阻塞','问题','困难','风险','延迟','卡住','不顺','瓶颈'];
+      const ideaWords = ['想法','方案','尝试','思路','灵感','机会','可以试试','或许','新方向','值得','优化'];
+      const planWords = ['计划','下一步','打算','准备','安排','推进','启动'];
+
+      const blockerNotes = weekNotes.filter(n => blockerWords.some(w => n.content.includes(w)));
+      const ideaNotes = weekNotes.filter(n => ideaWords.some(w => n.content.includes(w)));
+      const planNotes = weekNotes.filter(n => planWords.some(w => n.content.includes(w)));
+
+      // Generate a synthesized reflection paragraph
+      let reflectionParts = [];
+      if (ideaNotes.length > 0) {
+        reflectionParts.push(`本周产生了 ${ideaNotes.length} 条新思路/灵感，值得在后续工作中验证落地。`);
+      }
+      if (blockerNotes.length > 0) {
+        reflectionParts.push(`识别到 ${blockerNotes.length} 个潜在卡点或风险信号，建议下周优先排解。`);
+      }
+      if (planNotes.length > 0) {
+        reflectionParts.push(`已规划 ${planNotes.length} 项后续行动方向，可按优先级排入下周待办。`);
+      }
+
+      // Overall sentiment / productivity note
+      if (weekNotes.length >= 5) {
+        reflectionParts.push(`本周速记活跃度较高，说明思考密度大，注意筛选重点聚焦执行。`);
+      } else if (weekNotes.length <= 2) {
+        reflectionParts.push(`速记量偏少，下周可以更有意识地捕捉日常工作中的观察与想法。`);
+      }
+
+      if (reflectionParts.length > 0) {
+        report += `<p><strong>综合洞察：</strong></p>`;
+        reflectionParts.forEach(rp => {
+          report += `<p>· ${rp}</p>`;
+        });
+      }
+    }
+
+    // Blocker summary (brief, only if blocked clients exist)
+    if (blockedClients.length > 0) {
+      report += `<p><strong style="color:#dc2626">阻塞提醒：</strong>${blockedClients.length} 个客户存在阻塞（`;
+      report += blockedClients.map(p => escHtml(p.name)).join('、');
+      report += `），建议优先协调资源解决卡点问题。</p>`;
+    }
+
+    // Closing note
+    if (weekNotes.length > 0) {
+      report += `<p>下周建议：基于本周速记中反映的方向，聚焦最高优先级的 ${Math.min(3, Object.keys(noteTagGroups).length || 1)} 个主题深入推进。</p>`;
+    } else {
+      report += `<p>下周重点：继续推进进行中任务，重点关注逾期项清理和阻塞客户突破。</p>`;
+    }
+
+    // Insert summary at top
+    const dateRange = `${fmtDateCN(weekStart)} — ${fmtDateCN(today)}`;
+    const summary = `<p style="color:#64748b;font-size:.8rem">📅 统计周期：${dateRange} | 总任务 ${weekTasks.length} 项 | 完成 ${completedWeek.length} 项 | 客户 ${activeClients.length} 个 | 速记 ${weekNotes.length} 条</p>`;
+
+    const resultDiv = document.getElementById('aiReportResult');
+    resultDiv.innerHTML = summary + report + `<button class="ai-copy-btn" onclick="copyReport()">复制周报内容</button>`;
+    resultDiv.classList.add('show');
+
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>一键生成本周工作周报`;
+  }, 600);
+}
+
+function copyReport() {
+  const div = document.getElementById('aiReportResult');
+  const text = div.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('周报内容已复制到剪贴板');
+  }).catch(() => {
+    showToast('复制失败，请手动选中复制');
+  });
+}
+
+// ===== EXPORT / IMPORT =====
+function exportData() {
+  const data = {
+    version: 3,
+    exportedAt: new Date().toISOString(),
+    tasks, notes, clients, customerList,
+    _syncGistId: syncGistId || undefined
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `workbench-backup-${fmtDate(new Date())}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('备份文件已下载');
+}
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data.tasks && Array.isArray(data.tasks)) tasks = data.tasks;
+      if (data.notes && Array.isArray(data.notes)) notes = data.notes;
+      if (data.clients && Array.isArray(data.clients)) clients = data.clients;
+      else if (data.projects && Array.isArray(data.projects)) clients = data.projects;
+      if (data.customerList && Array.isArray(data.customerList)) customerList = data.customerList;
+      // Migrate task projectId → clientId on import
+      tasks.forEach(t => { if (t.projectId !== undefined && t.clientId === undefined) { t.clientId = t.projectId; delete t.projectId; } });
+      saveTasks(); saveNotes(); saveClients(); saveCustomerList();
+      // Restore sync Gist ID from backup if present
+      if (data._syncGistId && !syncGistId) {
+        syncGistId = data._syncGistId;
+        localStorage.setItem(LS_PREFIX + 'gh_gist_id', syncGistId);
+      }
+      renderAll();
+      showToast(`导入成功！${tasks.length} 任务、${notes.length} 笔记、${clients.length} 客户`);
+    } catch(err) {
+      showToast('导入失败：文件格式不正确');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// ===== CONFIRM =====
+function confirmClear() {
+  showConfirm('清空所有数据', '此操作不可恢复。建议先导出备份。确定要清空吗？', () => {
+    tasks = []; notes = []; clients = []; customerList = [];
+    saveTasks(); saveNotes(); saveClients(); saveCustomerList();
+    renderAll(); showToast('数据已清空');
+  });
+}
+function clearExamples() {
+  showConfirm('清空示例数据', '确定要清空所有示例数据吗？', () => {
+    tasks = []; notes = []; clients = []; customerList = [];
+    saveTasks(); saveNotes(); saveClients(); saveCustomerList();
+    renderAll(); showToast('示例数据已清空');
+  });
+}
+function showConfirm(title, msg, callback) {
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMsg').textContent = msg;
+  confirmCallback = callback;
+  document.getElementById('confirmDialog').classList.add('show');
+}
+function closeConfirm() {
+  document.getElementById('confirmDialog').classList.remove('show');
+  confirmCallback = null;
+}
+function executeConfirm() {
+  if (confirmCallback) confirmCallback();
+  closeConfirm();
+}
+
+// ===== TOAST =====
+function showToast(msg) {
+  const existing = document.querySelector('.toast');
+  if (existing) existing.remove();
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 2000);
+}
+
+// ===== BACKUP REMINDER =====
+function checkBackupReminder() {
+  const total = tasks.length + notes.length + clients.length + customerList.length;
+  document.getElementById('dataCount').textContent = `共 ${tasks.length} 任务 · ${notes.length} 笔记 · ${customerList.length} 清单 · ${clients.length} 客户`;
+  const hint = document.getElementById('backupHint');
+  const countEl = document.getElementById('backupCount');
+  if (total >= 20) {
+    hint.classList.add('show');
+    countEl.textContent = total;
+  } else {
+    hint.classList.remove('show');
+  }
+}
+
+// ===== AUTO ROLLOVER (yesterday's unfinished → today) =====
+function autoRollover() {
+  const yesterday = fmtDate(new Date(Date.now() - 86400000));
+  const today = fmtDate(new Date());
+  tasks.forEach(t => {
+    if (!t.completed && t.deadline === yesterday) {
+      t.deadline = today;
+      t.rolloverCount = (t.rolloverCount || 0) + 1;
+    }
+  });
+  saveTasks();
+}
+
+// ===== RENDER ALL =====
+function renderAll() {
+  renderAlert();
+  renderTasks();
+  renderNotes();
+  renderClients();
+  if (currentModule === 'review') renderReview();
+  if (currentModule === 'pipeline') renderPipeline();
+  checkBackupReminder();
+  populateClientSelect();
+}
+
+// ===== INIT =====
+autoRollover();
+renderAll();
+
+// ===== KEYBOARD SHORTCUTS =====
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay.show').forEach(m => m.classList.remove('show'));
+    closeConfirm();
+  }
+  if (e.ctrlKey || e.metaKey) {
+    switch(e.key) {
+      case '1': e.preventDefault(); switchModule('tasks'); break;
+      case '2': e.preventDefault(); switchModule('notes'); break;
+      case '3': e.preventDefault(); switchModule('pipeline'); break;
+      case '4': e.preventDefault(); switchModule('clients'); break;
+      case '5': e.preventDefault(); switchModule('review'); break;
+      case 's': e.preventDefault(); exportData(); break;
+    }
+  }
+});
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', function(e) {
+    if (e.target === overlay) overlay.classList.remove('show');
+  });
+});
+document.getElementById('confirmDialog').addEventListener('click', function(e) {
+  if (e.target === this) closeConfirm();
+});
+</script>
+</body>
+</html>
