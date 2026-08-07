@@ -72,6 +72,12 @@ ul{list-style:none}
 .sync-pulse.off{background:#cbd5e1}
 .sync-pulse.error{background:#dc2626}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.btn-sync-action{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 16px;font-size:.82rem;border-radius:8px;border:2px solid #e2e8f0;background:#fff;color:#475569;font-weight:500;cursor:pointer;transition:all .15s}
+.btn-sync-action:hover{transform:translateY(-1px)}
+.btn-sync-action.pull:hover{background:#e0f2fe;border-color:#0284c7;color:#0284c7}
+.btn-sync-action.push:hover{background:#f0fdfa;border-color:#0d9488;color:#0d9488}
+.btn-sync-action:active{transform:translateY(0)}
+.btn-sync-action:disabled{opacity:.5;pointer-events:none}
 .main-content{flex:1;padding:20px 24px;overflow-y:auto;padding-bottom:80px}
 
 /* ===== DATA BAR ===== */
@@ -674,27 +680,53 @@ ul{list-style:none}
 <div class="modal-overlay" id="syncModal">
   <div class="modal" style="max-width:480px">
     <div class="modal-header">
-      <h3>☁️ 云同步设置</h3>
+      <h3>☁️ 云同步</h3>
       <button class="modal-close" onclick="closeSyncSettings()">&times;</button>
     </div>
     <div class="modal-body">
-      <div style="background:#f0fdfa;border-radius:8px;padding:12px;font-size:.8rem;color:#0f766e;margin-bottom:16px;line-height:1.6">
-        <strong>工作原理：</strong>数据自动保存到你的 GitHub Gist（免费私有代码片段），电脑手机打开页面自动拉取最新数据，修改后自动推送。一次配置，永久同步。
+      <div style="background:#f0fdfa;border-radius:8px;padding:10px 12px;font-size:.78rem;color:#0f766e;margin-bottom:14px;line-height:1.6">
+        <strong>逻辑很简单：</strong><br>
+        ① 打开页面 → 自动从云端拉取最新数据<br>
+        ② 你修改任何内容 → 2秒后自动推到云端<br>
+        ③ 页面开着每5分钟自动检查云端更新
       </div>
+
+      <!-- Status bar -->
+      <div id="syncStatusBar" style="background:#f8fafc;border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:.78rem;display:flex;align-items:center;justify-content:space-between">
+        <span style="color:#64748b">状态：</span>
+        <span id="syncStatusText" style="font-weight:500;color:#94a3b8">未配置</span>
+      </div>
+
       <div class="form-group">
-        <label class="form-label">GitHub Personal Access Token</label>
+        <label class="form-label">GitHub Token</label>
         <input class="form-input" id="syncToken" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
-        <small style="color:#94a3b8">需要 <strong>gist</strong> 权限。没有的话 <a href="#" onclick="window.open('https://github.com/settings/tokens/new?scopes=gist&description=Workbench+Cloud+Sync')" style="color:#0d9488">点此创建</a>，勾选 gist 后生成。</small>
+        <small style="color:#94a3b8;font-size:.7rem">仅需 gist 权限。<a href="#" onclick="window.open('https://github.com/settings/tokens/new?scopes=gist&description=Workbench+Cloud+Sync')" style="color:#0d9488">没有？点此创建</a></small>
       </div>
-      <div class="form-group">
-        <label class="form-label">Gist ID（自动生成）</label>
-        <input class="form-input" id="syncGistId" placeholder="首次使用会自动创建，无需手动填写" readonly style="color:#94a3b8">
+
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        <button class="btn-sm primary" onclick="initSync()" id="btnInitSync" style="flex:1">🔗 连接云端（首次配置）</button>
       </div>
-      <div style="display:flex;gap:8px">
-        <button class="btn-sm primary" onclick="initSync()" id="btnInitSync" style="flex:1">启用云同步</button>
-        <button class="btn-sm outline" onclick="manualPush()" id="btnManualPush" style="flex:1;display:none">手动推送</button>
+
+      <!-- 操作按钮组（连接后显示） -->
+      <div id="syncActions" style="display:none">
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <button class="btn-sync-action pull" onclick="manualPull()" id="btnPull" style="flex:1">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+            从云端拉取
+          </button>
+          <button class="btn-sync-action push" onclick="manualPush()" id="btnPush" style="flex:1">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+            推送到云端
+          </button>
+        </div>
+        <div id="syncLastTime" style="font-size:.7rem;color:#94a3b8;text-align:center;margin-bottom:8px">上次同步：--</div>
       </div>
-      <div id="syncLog" style="margin-top:12px;font-size:.75rem;color:#64748b;max-height:120px;overflow-y:auto"></div>
+
+      <div id="syncLog" style="margin-top:8px;font-size:.7rem;color:#64748b;max-height:100px;overflow-y:auto;background:#f8fafc;border-radius:6px;padding:8px"></div>
+
+      <div style="font-size:.68rem;color:#94a3b8;margin-top:8px;line-height:1.5">
+        <strong>注意：</strong>Token 保存在当前设备的浏览器中。电脑和手机需要各配置一次（用同一个 Token）。手机端请勿使用无痕/隐私模式。
+      </div>
     </div>
   </div>
 </div>
@@ -776,252 +808,284 @@ function saveCustomerList() { localStorage.setItem(LS_PREFIX + 'pipeline', JSON.
 let syncToken = localStorage.getItem(LS_PREFIX + 'gh_token') || '';
 let syncGistId = localStorage.getItem(LS_PREFIX + 'gh_gist_id') || '';
 let syncPushTimer = null;
-let syncPullTimer = null;
+let syncPullInterval = null;
 
-function scheduleSyncPush() {
-  if (!syncToken || !syncGistId) return;
-  clearTimeout(syncPushTimer);
-  syncPushTimer = setTimeout(pushToGist, 2000); // debounce 2s
-}
-
+// --- Sidebar indicator ---
 function updateSyncUI(state, msg) {
   const btn = document.getElementById('btnSync');
   const status = document.getElementById('syncStatus');
+  if (!btn || !status) return;
   const pulse = status.querySelector('.sync-pulse');
-  btn.className = 'btn-sync';
-  status.className = 'sync-status';
-  pulse.className = 'sync-pulse';
-
+  btn.className = 'btn-sync'; status.className = 'sync-status'; pulse.className = 'sync-pulse';
   if (state === 'syncing') {
-    btn.classList.add('syncing');
-    status.classList.add('on');
-    pulse.classList.add('on');
+    btn.classList.add('syncing'); status.classList.add('on'); pulse.classList.add('on');
     status.innerHTML = '<span class="sync-pulse on"></span>同步中...';
   } else if (state === 'synced') {
-    btn.classList.add('synced');
-    status.classList.add('on');
-    pulse.classList.add('on');
+    btn.classList.add('synced'); status.classList.add('on'); pulse.classList.add('on');
     status.innerHTML = '<span class="sync-pulse on"></span>' + (msg || '已同步');
   } else if (state === 'error') {
-    btn.classList.add('error');
-    status.classList.add('error');
-    pulse.classList.add('error');
+    btn.classList.add('error'); status.classList.add('error'); pulse.classList.add('error');
     status.innerHTML = '<span class="sync-pulse error"></span>' + (msg || '同步失败');
   } else {
-    status.classList.add('off');
-    pulse.classList.add('off');
+    status.classList.add('off'); pulse.classList.add('off');
     status.innerHTML = '<span class="sync-pulse off"></span>未启用';
   }
 }
 
+// --- Modal status bar ---
+function updateSyncStatusBar(state, msg) {
+  const el = document.getElementById('syncStatusText');
+  const bar = document.getElementById('syncStatusBar');
+  if (!el || !bar) return;
+  const colors = {synced:'#16a34a',syncing:'#d97706',error:'#dc2626',off:'#94a3b8'};
+  const labels = {synced:'已连接',syncing:'同步中...',error:'同步失败',off:'未配置'};
+  el.textContent = msg || labels[state] || '--';
+  el.style.color = colors[state] || '#94a3b8';
+}
+
+function scheduleSyncPush() {
+  if (!syncToken || !syncGistId) return;
+  clearTimeout(syncPushTimer);
+  syncPushTimer = setTimeout(pushToGist, 2000);
+}
+
 async function pushToGist() {
   if (!syncToken || !syncGistId) return;
-  updateSyncUI('syncing');
-  syncLog('推送数据到云端...');
+  updateSyncUI('syncing'); updateSyncStatusBar('syncing');
+  syncLog('↑ 推送本地数据到云端...');
   try {
     const data = {
       tasks: JSON.parse(localStorage.getItem(LS_PREFIX + 'tasks') || '[]'),
       notes: JSON.parse(localStorage.getItem(LS_PREFIX + 'notes') || '[]'),
       clients: JSON.parse(localStorage.getItem(LS_PREFIX + 'clients') || '[]'),
       customerList: JSON.parse(localStorage.getItem(LS_PREFIX + 'pipeline') || '[]'),
-      _updatedAt: new Date().toISOString(),
-      _version: 1
+      _updatedAt: new Date().toISOString(), _version: 1
     };
     const resp = await fetch(`https://api.github.com/gists/${syncGistId}`, {
       method: 'PATCH',
-      headers: {
-        'Authorization': `token ${syncToken}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/vnd.github.v3+json'
-      },
-      body: JSON.stringify({
-        files: { 'workbench-data.json': { content: JSON.stringify(data, null, 2) } }
-      })
+      headers: {'Authorization': `token ${syncToken}`,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},
+      body: JSON.stringify({files:{'workbench-data.json':{content:JSON.stringify(data,null,2)}}})
     });
-    if (!resp.ok) {
-      const err = await resp.json().catch(() => ({}));
-      throw new Error(err.message || `HTTP ${resp.status}`);
-    }
-    updateSyncUI('synced', '已同步 ' + new Date().toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'}));
-    syncLog('✓ 推送成功');
-    localStorage.setItem(LS_PREFIX + 'last_sync', Date.now().toString());
+    if (!resp.ok) { const err = await resp.json().catch(()=>({})); throw new Error(err.message||`HTTP ${resp.status}`); }
+    const now = Date.now();
+    localStorage.setItem(LS_PREFIX + 'last_sync', now.toString());
+    localStorage.setItem(LS_PREFIX + 'last_push', now.toString());
+    const t = new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+    updateSyncUI('synced','已同步 '+t);
+    updateSyncStatusBar('synced','已连接 · 上次推送 '+t);
+    syncLog('✓ 推送成功 (' + t + ')');
+    updateSyncLastTime();
   } catch (e) {
-    updateSyncUI('error', '推送失败');
+    updateSyncUI('error','推送失败'); updateSyncStatusBar('error',e.message);
     syncLog('✗ 推送失败: ' + e.message);
   }
 }
 
-async function pullFromGist() {
+async function pullFromGistRaw() {
   if (!syncToken || !syncGistId) return null;
   try {
     const resp = await fetch(`https://api.github.com/gists/${syncGistId}`, {
-      headers: {
-        'Authorization': `token ${syncToken}`,
-        'Accept': 'application/vnd.github.v3+json'
-      }
+      headers: {'Authorization':`token ${syncToken}`,'Accept':'application/vnd.github.v3+json'}
     });
-    if (!resp.ok) {
-      if (resp.status === 404) {
-        syncLog('Gist 不存在，请重新初始化');
-        return null;
-      }
-      throw new Error(`HTTP ${resp.status}`);
-    }
+    if (!resp.ok) { if (resp.status===404){syncLog('Gist 不存在');return null;} throw new Error(`HTTP ${resp.status}`); }
     const gist = await resp.json();
     const file = gist.files && gist.files['workbench-data.json'];
     if (!file || !file.content) return null;
     const data = JSON.parse(file.content);
-    if (!data._version) return null; // safety check
+    if (!data._version) return null;
     return data;
-  } catch (e) {
-    syncLog('拉取失败: ' + e.message);
-    return null;
-  }
+  } catch (e) { syncLog('拉取失败: '+e.message); return null; }
 }
 
-async function autoPullOnStart() {
+// Returns true if cloud data was actually loaded
+async function applyCloudData(cloud, source) {
+  if (!cloud) return false;
+  const cloudTime = new Date(cloud._updatedAt).getTime();
+  const localTime = parseInt(localStorage.getItem(LS_PREFIX + 'last_sync') || '0');
+  if (cloudTime <= localTime) { syncLog('本地数据已是最新，无需拉取'); return false; }
+
+  if (cloud.tasks) { tasks = cloud.tasks; localStorage.setItem(LS_PREFIX+'tasks',JSON.stringify(tasks)); }
+  if (cloud.notes) { notes = cloud.notes; localStorage.setItem(LS_PREFIX+'notes',JSON.stringify(notes)); }
+  if (cloud.clients) { clients = cloud.clients; localStorage.setItem(LS_PREFIX+'clients',JSON.stringify(clients)); }
+  if (cloud.customerList) { customerList = cloud.customerList; localStorage.setItem(LS_PREFIX+'pipeline',JSON.stringify(customerList)); }
+  localStorage.setItem(LS_PREFIX+'last_sync', cloudTime.toString());
+  renderAll();
+  const t = new Date(cloud._updatedAt).toLocaleString('zh-CN');
+  updateSyncUI('synced','已同步');
+  updateSyncStatusBar('synced','已连接 · 数据来自云端('+t+')');
+  syncLog('✓ '+source+'更新了本地数据 ('+t+')');
+  updateSyncLastTime();
+  return true;
+}
+
+async function pullAndApply(source) {
   if (!syncToken || !syncGistId) return;
-  updateSyncUI('syncing');
-  syncLog('检查云端数据...');
+  updateSyncUI('syncing'); updateSyncStatusBar('syncing');
+  syncLog('↓ 从云端拉取数据...');
   try {
-    const cloud = await pullFromGist();
-    if (!cloud) {
-      updateSyncUI('off');
-      return;
-    }
-    const cloudTime = new Date(cloud._updatedAt).getTime();
-    const localTime = parseInt(localStorage.getItem(LS_PREFIX + 'last_sync') || '0');
-
-    if (cloudTime > localTime) {
-      // Cloud is newer — load it
-      if (cloud.tasks) { tasks = cloud.tasks; localStorage.setItem(LS_PREFIX + 'tasks', JSON.stringify(tasks)); }
-      if (cloud.notes) { notes = cloud.notes; localStorage.setItem(LS_PREFIX + 'notes', JSON.stringify(notes)); }
-      if (cloud.clients) { clients = cloud.clients; localStorage.setItem(LS_PREFIX + 'clients', JSON.stringify(clients)); }
-      if (cloud.customerList) { customerList = cloud.customerList; localStorage.setItem(LS_PREFIX + 'pipeline', JSON.stringify(customerList)); }
-      localStorage.setItem(LS_PREFIX + 'last_sync', cloudTime.toString());
-      renderAll();
-      updateSyncUI('synced', '已从云端加载');
-      syncLog('✓ 从云端更新了数据 (' + new Date(cloud._updatedAt).toLocaleString('zh-CN') + ')');
-    } else {
-      // Local is newer or equal — push local to cloud
-      updateSyncUI('synced', '本地最新');
-      syncLog('本地数据已是最新');
-      pushToGist();
+    const cloud = await pullFromGistRaw();
+    if (!cloud) { updateSyncStatusBar('error','无法连接云端'); syncLog('✗ 拉取失败'); return; }
+    const applied = await applyCloudData(cloud, source);
+    if (!applied) {
+      updateSyncStatusBar('synced','已连接 · 本地最新');
     }
   } catch (e) {
-    updateSyncUI('error', '同步检查失败');
-    syncLog('✗ 启动同步失败: ' + e.message);
+    updateSyncUI('error'); updateSyncStatusBar('error',e.message);
+    syncLog('✗ 拉取失败: '+e.message);
   }
 }
+
+// --- Periodic background pull (every 5 min) ---
+function startPeriodicPull() {
+  stopPeriodicPull();
+  syncPullInterval = setInterval(() => {
+    if (syncToken && syncGistId) { syncLog('⏰ 定时检查云端...'); pullAndApply('定时同步：'); }
+  }, 5 * 60 * 1000);
+}
+function stopPeriodicPull() { if (syncPullInterval) { clearInterval(syncPullInterval); syncPullInterval = null; } }
 
 function syncLog(msg) {
   const el = document.getElementById('syncLog');
   if (!el) return;
-  const time = new Date().toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const time = new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
   el.innerHTML = `<div>[${time}] ${msg}</div>` + el.innerHTML;
-  // Keep last 20 entries
   const lines = el.innerHTML.split('</div>').filter(Boolean);
-  if (lines.length > 20) el.innerHTML = lines.slice(0, 20).join('</div>') + '</div>';
+  if (lines.length > 20) el.innerHTML = lines.slice(0,20).join('</div>')+'</div>';
 }
 
+function updateSyncLastTime() {
+  const el = document.getElementById('syncLastTime');
+  if (!el) return;
+  const t = parseInt(localStorage.getItem(LS_PREFIX+'last_sync')||'0');
+  el.textContent = t ? '上次同步：'+new Date(t).toLocaleString('zh-CN') : '上次同步：--';
+}
+
+// --- Modal ---
 function openSyncSettings() {
   document.getElementById('syncToken').value = syncToken;
-  document.getElementById('syncGistId').value = syncGistId;
   document.getElementById('syncLog').innerHTML = '';
   updateSyncSettingsUI();
   document.getElementById('syncModal').classList.add('show');
 }
 
-function closeSyncSettings() {
-  document.getElementById('syncModal').classList.remove('show');
-}
+function closeSyncSettings() { document.getElementById('syncModal').classList.remove('show'); }
 
 function updateSyncSettingsUI() {
   const hasConfig = !!(syncToken && syncGistId);
-  document.getElementById('btnInitSync').textContent = hasConfig ? '重新初始化' : '启用云同步';
-  document.getElementById('btnManualPush').style.display = hasConfig ? '' : 'none';
+  const btn = document.getElementById('btnInitSync');
+  const actions = document.getElementById('syncActions');
+  btn.textContent = hasConfig ? '🔗 重新连接' : '🔗 连接云端（首次配置）';
+  btn.style.background = hasConfig ? '#f8fafc' : '#0d9488';
+  btn.style.color = hasConfig ? '#475569' : '#fff';
+  if (actions) actions.style.display = hasConfig ? '' : 'none';
+  updateSyncLastTime();
+  if (hasConfig) {
+    updateSyncStatusBar('synced','已连接');
+    // Brief log
+    syncLog('已配置 · Gist: ' + syncGistId.slice(0,8) + '...');
+  } else {
+    updateSyncStatusBar('off');
+  }
 }
 
+// --- Init: connects to existing Gist or creates new ---
 async function initSync() {
   const token = document.getElementById('syncToken').value.trim();
-  if (!token || !token.startsWith('ghp_')) {
-    showToast('请输入有效的 GitHub Token（以 ghp_ 开头）');
-    return;
-  }
+  if (!token || !token.startsWith('ghp_')) { showToast('请输入有效的 GitHub Token（以 ghp_ 开头）'); return; }
 
   const btn = document.getElementById('btnInitSync');
-  btn.disabled = true;
-  btn.textContent = '初始化中...';
-  syncLog('正在创建 Gist...');
+  btn.disabled = true; btn.textContent = '连接中...';
+  syncLog('正在连接 GitHub...');
 
   try {
-    // Create a new Gist
-    const resp = await fetch('https://api.github.com/gists', {
-      method: 'POST',
-      headers: {
-        'Authorization': `token ${token}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/vnd.github.v3+json'
-      },
-      body: JSON.stringify({
-        description: 'WorkBuddy Personal Workbench — Cloud Sync Data',
-        public: false,
-        files: {
-          'workbench-data.json': {
-            content: JSON.stringify({
-              tasks, notes, clients,
-              _updatedAt: new Date().toISOString(),
-              _version: 1
-            }, null, 2)
-          }
-        }
-      })
-    });
+    // Strategy: first try to find an existing workbench Gist for this user
+    let gistId = null;
+    syncLog('查找已有的工作台 Gist...');
+    try {
+      const listResp = await fetch('https://api.github.com/gists?per_page=100', {
+        headers: {'Authorization':`token ${token}`,'Accept':'application/vnd.github.v3+json'}
+      });
+      if (listResp.ok) {
+        const gists = await listResp.json();
+        const found = gists.find(g => g.description && g.description.includes('WorkBuddy Personal Workbench'));
+        if (found) { gistId = found.id; syncLog('✓ 找到已有 Gist: '+gistId.slice(0,8)+'...'); }
+      }
+    } catch(e) { syncLog('查找 Gist 跳过: '+e.message); }
 
-    if (!resp.ok) {
-      const err = await resp.json().catch(() => ({}));
-      if (resp.status === 401) throw new Error('Token 无效或已过期');
-      if (resp.status === 403 && err.message && err.message.includes('rate limit')) throw new Error('API 请求次数超限，请稍后再试');
-      throw new Error(err.message || `HTTP ${resp.status}`);
+    if (!gistId) {
+      // Create new
+      syncLog('创建新的 Gist...');
+      const resp = await fetch('https://api.github.com/gists', {
+        method:'POST',
+        headers:{'Authorization':`token ${token}`,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},
+        body:JSON.stringify({
+          description:'WorkBuddy Personal Workbench — Cloud Sync Data', public:false,
+          files:{'workbench-data.json':{content:JSON.stringify({tasks,notes,clients,customerList,_updatedAt:new Date().toISOString(),_version:1},null,2)}}
+        })
+      });
+      if (!resp.ok) {
+        const err = await resp.json().catch(()=>({}));
+        if (resp.status===401) throw new Error('Token 无效或已过期');
+        if (resp.status===403&&err.message&&err.message.includes('rate limit')) throw new Error('API 请求次数超限，请稍后再试');
+        throw new Error(err.message||`HTTP ${resp.status}`);
+      }
+      const gist = await resp.json();
+      gistId = gist.id;
+      syncLog('✓ 创建成功');
     }
 
-    const gist = await resp.json();
-    syncToken = token;
-    syncGistId = gist.id;
+    syncToken = token; syncGistId = gistId;
+    localStorage.setItem(LS_PREFIX+'gh_token', syncToken);
+    localStorage.setItem(LS_PREFIX+'gh_gist_id', syncGistId);
+    localStorage.setItem(LS_PREFIX+'last_sync', Date.now().toString());
 
-    localStorage.setItem(LS_PREFIX + 'gh_token', syncToken);
-    localStorage.setItem(LS_PREFIX + 'gh_gist_id', syncGistId);
-    localStorage.setItem(LS_PREFIX + 'last_sync', Date.now().toString());
-
-    document.getElementById('syncGistId').value = syncGistId;
     updateSyncSettingsUI();
-    updateSyncUI('synced', '已连接');
-    syncLog('✓ 云同步已启用！Gist ID: ' + syncGistId);
-    syncLog('数据将自动在设备间同步');
-    showToast('云同步已启用！');
+    updateSyncUI('synced','已连接');
+    updateSyncStatusBar('synced','已连接');
+    syncLog('✓ 云同步已启用！');
+    showToast('云同步已连接！');
+    startPeriodicPull();
+
+    // Pull latest from cloud
+    await pullAndApply('首次连接：');
 
     btn.disabled = false;
-    btn.textContent = '重新初始化';
+    btn.textContent = '🔗 重新连接';
+    btn.style.background = '#f8fafc'; btn.style.color = '#475569';
   } catch (e) {
-    syncLog('✗ 初始化失败: ' + e.message);
-    showToast('初始化失败: ' + e.message);
-    btn.disabled = false;
-    btn.textContent = '启用云同步';
+    syncLog('✗ 连接失败: '+e.message);
+    showToast('连接失败: '+e.message);
+    btn.disabled = false; btn.textContent = '🔗 连接云端（首次配置）';
+    btn.style.background = '#0d9488'; btn.style.color = '#fff';
   }
+}
+
+// --- Manual buttons ---
+async function manualPull() {
+  if (!syncToken || !syncGistId) { showToast('请先连接云端'); return; }
+  const btn = document.getElementById('btnPull');
+  btn.disabled = true; btn.textContent = '拉取中...';
+  await pullAndApply('手动拉取：');
+  btn.disabled = false; btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>从云端拉取';
+  showToast('拉取完成');
 }
 
 async function manualPush() {
-  if (!syncToken || !syncGistId) return;
+  if (!syncToken || !syncGistId) { showToast('请先连接云端'); return; }
+  const btn = document.getElementById('btnPush');
+  btn.disabled = true; btn.textContent = '推送中...';
   await pushToGist();
-  showToast('已手动推送');
+  btn.disabled = false; btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>推送到云端';
+  showToast('推送完成');
 }
 
-// Auto-pull on page load — called from init
+// --- Startup ---
 function initSyncOnStart() {
   if (syncToken && syncGistId) {
-    updateSyncUI('synced', '已连接');
-    // Delay pull to let page render first
-    setTimeout(autoPullOnStart, 1500);
+    updateSyncUI('synced','已连接');
+    updateSyncStatusBar('synced','已连接');
+    setTimeout(() => pullAndApply('启动同步：'), 1500);
+    startPeriodicPull();
   }
 }
 
