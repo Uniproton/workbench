@@ -183,6 +183,9 @@ ul{list-style:none}
 .pipeline-tag.reported{background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0}
 .pipeline-tag.reporting{background:#fffbeb;color:#d97706;border:1px solid #fde68a}
 .pipeline-tag.pending{background:#f8fafc;color:#64748b;border:1px solid #e2e8f0}
+.contact-status{display:inline-flex;align-items:center;gap:3px;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:600}
+.contact-status.contacted{background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe}
+.contact-status.uncontacted{background:#fef2f2;color:#dc2626;border:1px solid #fecaca}
 .pipeline-card-name{font-size:.92rem;font-weight:600;color:#1e293b;margin-bottom:0}
 .pipeline-card-header{cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px;user-select:none}
 .pipeline-card-header:hover .pipeline-card-name{color:#0d9488}
@@ -590,6 +593,13 @@ ul{list-style:none}
           <span class="tag-option" data-tag="pending">待报备客户</span>
           <span class="tag-option selected" data-tag="reporting">报备中客户</span>
           <span class="tag-option" data-tag="reported">已报备客户</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">建联状态</label>
+        <div class="tag-options" id="pipelineContactStatus">
+          <span class="tag-option selected" data-status="uncontacted">未建联</span>
+          <span class="tag-option" data-status="contacted">已建联</span>
         </div>
       </div>
       <div class="form-group">
@@ -1109,9 +1119,9 @@ function seedExamples() {
   ];
   // Pipeline customers
   customerList = [
-    {id:uid(),name:'上海XX进出口有限公司',tag:'reported',contact:'张总',phone:'138****6789',company:'上海XX进出口有限公司',notes:'主营机电产品进口，已确认长期合作意向',createdAt:yesterday},
-    {id:uid(),name:'宁波XX国际贸易',tag:'reporting',contact:'李经理',phone:'139****8901',company:'宁波XX国际贸易有限公司',notes:'正在准备报备材料，预计下周提交',createdAt:today},
-    {id:uid(),name:'杭州XX供应链科技',tag:'pending',contact:'王总',phone:'136****2345',company:'杭州XX供应链科技有限公司',notes:'初次接触，了解报关代理需求',createdAt:today},
+    {id:uid(),name:'上海XX进出口有限公司',tag:'reported',contact:'张总',phone:'138****6789',company:'上海XX进出口有限公司',notes:'主营机电产品进口，已确认长期合作意向',createdAt:yesterday,contactStatus:'contacted'},
+    {id:uid(),name:'宁波XX国际贸易',tag:'reporting',contact:'李经理',phone:'139****8901',company:'宁波XX国际贸易有限公司',notes:'正在准备报备材料，预计下周提交',createdAt:today,contactStatus:'contacted'},
+    {id:uid(),name:'杭州XX供应链科技',tag:'pending',contact:'王总',phone:'136****2345',company:'杭州XX供应链科技有限公司',notes:'初次接触，了解报关代理需求',createdAt:today,contactStatus:'uncontacted'},
   ];
   // Auto-create existing client for reported customer (since task links to it)
   const pipeShanghai = customerList.find(c => c.name === '上海XX进出口有限公司');
@@ -1643,6 +1653,8 @@ function renderPipeline() {
 
 function renderPipelineCard(c) {
   const tagLabel = {reported:'已报备客户',reporting:'报备中客户',pending:'待报备客户'}[c.tag];
+  const contactStatus = c.contactStatus || 'uncontacted';
+  const contactLabel = contactStatus === 'contacted' ? '已建联' : '未建联';
   const linkedClient = clients.find(cl => cl.pipelineId === c.id);
   const syncedBadge = linkedClient
     ? `<span class="pipeline-synced-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>已有待办任务</span>`
@@ -1690,7 +1702,10 @@ function renderPipelineCard(c) {
       </span>
     </div>
     <div class="pipeline-card-body">
-      <span class="pipeline-tag ${c.tag}">${tagLabel}</span>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+        <span class="pipeline-tag ${c.tag}">${tagLabel}</span>
+        <span class="contact-status ${contactStatus}">${contactStatus === 'contacted' ? '✓' : '○'} ${contactLabel}</span>
+      </div>
       <div class="pipeline-card-info">
         ${c.contact ? `<span>👤 联系人：${escHtml(c.contact)}</span>` : ''}
         ${c.phone ? `<span>📞 电话：${escHtml(c.phone)}</span>` : ''}
@@ -1723,6 +1738,8 @@ function openPipelineModal() {
   document.getElementById('pipelineModalTitle').textContent = '添加客户';
   document.querySelectorAll('#pipelineTags .tag-option').forEach(el => el.classList.remove('selected'));
   document.querySelector('#pipelineTags .tag-option[data-tag="reporting"]').classList.add('selected');
+  document.querySelectorAll('#pipelineContactStatus .tag-option').forEach(el => el.classList.remove('selected'));
+  document.querySelector('#pipelineContactStatus .tag-option[data-status="uncontacted"]').classList.add('selected');
   document.getElementById('pipelineModal').classList.add('show');
 }
 
@@ -1741,6 +1758,9 @@ function editPipeline(id) {
   document.querySelectorAll('#pipelineTags .tag-option').forEach(el => {
     el.classList.toggle('selected', el.dataset.tag === c.tag);
   });
+  document.querySelectorAll('#pipelineContactStatus .tag-option').forEach(el => {
+    el.classList.toggle('selected', el.dataset.status === (c.contactStatus || 'uncontacted'));
+  });
   document.getElementById('pipelineModal').classList.add('show');
 }
 
@@ -1754,15 +1774,18 @@ function savePipeline() {
   const notes = document.getElementById('pipelineNotes').value.trim();
   const tagEl = document.querySelector('#pipelineTags .tag-option.selected');
   const tag = tagEl ? tagEl.dataset.tag : 'pending';
+  const statusEl = document.querySelector('#pipelineContactStatus .tag-option.selected');
+  const contactStatus = statusEl ? statusEl.dataset.status : 'uncontacted';
 
   if (id) {
     const c = customerList.find(c => c.id === id);
     if (c) {
       c.name = name; c.contact = contact; c.phone = phone;
       c.company = company; c.notes = notes; c.tag = tag;
+      c.contactStatus = contactStatus;
     }
   } else {
-    const newCust = { id: uid(), name, contact, phone, company, notes, tag, createdAt: fmtDate(new Date()) };
+    const newCust = { id: uid(), name, contact, phone, company, notes, tag, contactStatus, createdAt: fmtDate(new Date()) };
     customerList.push(newCust);
   }
   saveCustomerList(); closePipelineModal(); renderAll();
