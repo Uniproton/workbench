@@ -845,6 +845,9 @@ function updateSyncStatusBar(state, msg) {
 
 function scheduleSyncPush() {
   if (!syncToken || !syncGistId) return;
+  // Safety: don't push until we've successfully pulled from cloud at least once
+  const lastSync = localStorage.getItem(LS_PREFIX + 'last_sync');
+  if (!lastSync) return;
   clearTimeout(syncPushTimer);
   syncPushTimer = setTimeout(pushToGist, 2000);
 }
@@ -1091,6 +1094,8 @@ function initSyncOnStart() {
 
 function seedExamples() {
   if (tasks.length > 0 || notes.length > 0 || clients.length > 0) return;
+  // If cloud sync is configured, skip seeding — real data will come from the cloud
+  if (syncToken && syncGistId) return;
   const now = new Date();
   const today = fmtDate(now);
   const yesterday = fmtDate(new Date(now - 86400000));
@@ -1127,7 +1132,11 @@ function seedExamples() {
     {id:uid(),content:'可以试试用视频会议替代上门拜访，提高新客户触达效率',tags:['客户','灵感'],createdAt:today},
     {id:uid(),content:'下周计划启动浙江区域第二批直客筛选，优先制造业方向',tags:['销售','计划'],createdAt:today},
   ];
-  saveTasks(); saveNotes(); saveClients(); saveCustomerList();
+  // Write directly to localStorage WITHOUT triggering sync push (example data only)
+  localStorage.setItem(LS_PREFIX + 'tasks', JSON.stringify(tasks));
+  localStorage.setItem(LS_PREFIX + 'notes', JSON.stringify(notes));
+  localStorage.setItem(LS_PREFIX + 'clients', JSON.stringify(clients));
+  localStorage.setItem(LS_PREFIX + 'pipeline', JSON.stringify(customerList));
 }
 
 function fmtDate(d) {
