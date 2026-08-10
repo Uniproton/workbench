@@ -1522,6 +1522,14 @@ document.getElementById('pipelineTags').addEventListener('click', function(e) {
   }
 });
 
+// Pipeline contact status selection
+document.getElementById('pipelineContactStatus').addEventListener('click', function(e) {
+  if (e.target.classList.contains('tag-option')) {
+    document.querySelectorAll('#pipelineContactStatus .tag-option').forEach(el => el.classList.remove('selected'));
+    e.target.classList.add('selected');
+  }
+});
+
 // ===== NOTES =====
 function renderNotes() {
   const search = (document.getElementById('noteSearchInput').value || '').toLowerCase();
